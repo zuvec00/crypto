@@ -1,0 +1,50 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: 'Poppins', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #121212;
+  color: #F9FAFB;
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-metallic-gold text-primary-black px-4 py-2 rounded-lg hover:bg-gold-hover transition-all font-medium;
+  }
+  
+  .btn-secondary {
+    @apply bg-medium-gray text-soft-white px-4 py-2 rounded-lg hover:bg-light-gray transition-all font-medium;
+  }
+  
+  .btn-blue {
+    @apply bg-electric-blue text-soft-white px-4 py-2 rounded-lg hover:bg-blue-hover transition-all font-medium;
+  }
+  
+  .card {
+    @apply bg-dark-gray p-6 rounded-xl border border-medium-gray;
+  }
+  
+  .input-field {
+    @apply w-full px-4 py-3 bg-medium-gray border border-light-gray rounded-lg focus:ring-2 focus:ring-metallic-gold focus:border-transparent outline-none transition-all text-soft-white;
+  }
+  
+  .status-badge {
+    @apply px-2 py-1 text-xs font-medium rounded-full;
+  }
+  
+  .sidebar-item {
+    @apply w-full flex items-center px-4 py-3 text-left rounded-lg transition-colors;
+  }
+  
+  .sidebar-item-active {
+    @apply bg-metallic-gold bg-opacity-20 text-metallic-gold border-r-2 border-metallic-gold;
+  }
+  
+  .sidebar-item-inactive {
+    @apply text-gray-400 hover:bg-medium-gray;
+  }
+}
