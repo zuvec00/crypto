@@ -310,6 +310,39 @@ class ApiService {
 
     return response.json();
   }
+
+  async withdrawCrypto(data: {
+    currency: string;
+    amount: string;
+    fund_uid: string;
+    network?: string;
+    transaction_note?: string;
+    reference?: string;
+    narration?: string;
+  }): Promise<unknown> {
+    // Use the correct backend endpoint for sending crypto
+    const response = await fetch(`${API_BASE_URL}/trade/send_crypto`, {
+      method: "POST",
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({
+        currency: data.currency,
+        amount: data.amount,
+        transaction_note: data.transaction_note,
+        narration: data.narration,
+        // Note: fund_uid and network might need to be handled differently
+        // depending on how your backend processes them
+        fund_uid: data.fund_uid,
+        network: data.network
+      }),
+    });
+
+    if (!response.ok) {
+      const error: ApiError = await response.json();
+      throw new Error(error.message || "Failed to send crypto");
+    }
+
+    return response.json();
+  }
 }
 
 export const apiService = new ApiService();
