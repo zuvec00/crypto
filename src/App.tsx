@@ -6,6 +6,7 @@ import {
 	Navigate,
 } from "react-router-dom";
 import { useAuthStore } from "./store/authStore";
+import { useWebSocket } from "./hooks/useWebSocket";
 import {
 	LayoutDashboard,
 	Wallet,
@@ -54,6 +55,7 @@ export interface User {
 
 function App() {
 	const { initializing, initAuth } = useAuthStore();
+	useWebSocket(); // Initialize WebSocket connection
 
 	useEffect(() => {
 		initAuth();

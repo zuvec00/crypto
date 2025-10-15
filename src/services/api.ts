@@ -81,10 +81,10 @@ class ApiService {
   }
 
   async createWalletAddress(currency: string, network?: string): Promise<any> {
-    const url = network 
+    const url = network
       ? `${API_BASE_URL}/wallet/${currency}/address?network=${network}`
       : `${API_BASE_URL}/wallet/${currency}/address`;
-      
+
     const response = await fetch(url, {
       method: "POST",
       headers: this.getAuthHeaders(),
@@ -99,10 +99,10 @@ class ApiService {
   }
 
   async getWalletAddress(currency: string, network?: string): Promise<any> {
-    const url = network 
+    const url = network
       ? `${API_BASE_URL}/wallet/${currency}/address?network=${network}`
       : `${API_BASE_URL}/wallet/${currency}/address`;
-      
+
     const response = await fetch(url, {
       method: "GET",
       headers: this.getAuthHeaders(),
@@ -136,7 +136,7 @@ class ApiService {
       {
         method: "GET",
         headers: this.getAuthHeaders(),
-      }
+      },
     );
 
     if (!response.ok) {
@@ -147,9 +147,8 @@ class ApiService {
     return response.json();
   }
 
-  async buyCrypto(ask: string, total: string): Promise<any> {
-    const requestBody = { ask, total };
-    console.log("🛒 Buy Crypto Request:", requestBody);
+  async buyCrypto(ask: string, total: string, naira: string): Promise<any> {
+    const requestBody = { ask, volume: total, naira };
 
     const response = await fetch(`${API_BASE_URL}/trade/buy`, {
       method: "POST",
@@ -159,18 +158,15 @@ class ApiService {
 
     if (!response.ok) {
       const error: ApiError = await response.json();
-      console.error("❌ Buy Crypto Error:", error);
       throw new Error(error.message || "Failed to buy crypto");
     }
 
     const data = await response.json();
-    console.log("✅ Buy Crypto Success:", data);
     return data;
   }
 
-  async sellCrypto(ask: string, volume: string): Promise<any> {
-    const requestBody = { ask, volume };
-    console.log("💸 Sell Crypto Request:", requestBody);
+  async sellCrypto(ask: string, volume: string, naira: string): Promise<any> {
+    const requestBody = { ask, volume, naira };
 
     const response = await fetch(`${API_BASE_URL}/trade/sell`, {
       method: "POST",
@@ -180,12 +176,10 @@ class ApiService {
 
     if (!response.ok) {
       const error: ApiError = await response.json();
-      console.error("❌ Sell Crypto Error:", error);
       throw new Error(error.message || "Failed to sell crypto");
     }
 
     const data = await response.json();
-    console.log("✅ Sell Crypto Success:", data);
     return data;
   }
 
@@ -251,7 +245,7 @@ class ApiService {
       {
         method: "POST",
         headers: this.getAuthHeaders(),
-      }
+      },
     );
 
     if (!response.ok) {
@@ -302,12 +296,12 @@ class ApiService {
     side?: string;
   }): Promise<any> {
     const queryParams = new URLSearchParams();
-    if (params?.market) queryParams.append('market', params.market);
-    if (params?.state) queryParams.append('state', params.state);
-    if (params?.side) queryParams.append('side', params.side);
-    
+    if (params?.market) queryParams.append("market", params.market);
+    if (params?.state) queryParams.append("state", params.state);
+    if (params?.side) queryParams.append("side", params.side);
+
     const queryString = queryParams.toString();
-    const url = queryString 
+    const url = queryString
       ? `${API_BASE_URL}/trade/all?${queryString}`
       : `${API_BASE_URL}/trade/all`;
 
@@ -339,10 +333,13 @@ class ApiService {
   }
 
   async createUSDTAllNetworks(): Promise<any> {
-    const response = await fetch(`${API_BASE_URL}/wallet/usdt/create-all-networks`, {
-      method: "POST",
-      headers: this.getAuthHeaders(),
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/wallet/usdt/create-all-networks`,
+      {
+        method: "POST",
+        headers: this.getAuthHeaders(),
+      },
+    );
 
     if (!response.ok) {
       const error: ApiError = await response.json();
@@ -366,7 +363,8 @@ class ApiService {
       amount: data.amount,
       fund_uid: data.fund_uid,
       transaction_note: data.transaction_note || "Crypto withdrawal",
-      narration: data.narration || `Send ${data.amount} ${data.currency.toUpperCase()}`,
+      narration:
+        data.narration || `Send ${data.amount} ${data.currency.toUpperCase()}`,
     };
 
     const response = await fetch(`${API_BASE_URL}/trade/send_crypto`, {

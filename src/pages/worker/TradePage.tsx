@@ -49,15 +49,10 @@ export default function TradePage() {
 		const filtered = rates.filter((rate) =>
 			["usdtngn", "btcngn", "ethngn"].includes(rate.marker)
 		);
-		console.log("💱 Rates To Use:", { rates, filtered });
 		return filtered;
 	}, [rates]);
 
 	const balanceToUse = useMemo(() => {
-		console.log("💼 Wallet Balances (Individual Endpoints):", {
-			allBalances: balances,
-			usdtBalance: balances.find((b) => b.currency === "usdt"),
-		});
 		return balances;
 	}, [balances]);
 
@@ -65,7 +60,6 @@ export default function TradePage() {
 		const found = rates.find(
 			(rate) => rate.marker.split("ngn")[0] === selectedCoin
 		);
-		console.log("📊 Selected Rate:", { selectedCoin, found, allRates: rates });
 		return found;
 	}, [rates, selectedCoin]);
 
@@ -94,26 +88,11 @@ export default function TradePage() {
 			return;
 		}
 
-		console.log("🎯 Trade Action:", {
-			tradeType,
-			selectedCoin,
-			amount,
-			balances: balanceToUse,
-			totalDailyTransaction,
-		});
-
 		// Validation for buy orders
 		if (tradeType === "buy") {
 			const ngnBalance = balanceToUse.find((bal) => bal.currency === "ngn");
 			const availableBalance = parseFloat(ngnBalance?.balance || "0");
 			const requestedAmount = parseFloat(amount);
-
-			console.log("💰 Buy Validation:", {
-				ngnBalance,
-				availableBalance,
-				requestedAmount,
-				hasEnough: requestedAmount <= availableBalance,
-			});
 
 			if (requestedAmount > availableBalance) {
 				setTradeResult({ success: false, message: "Insufficient NGN balance" });
@@ -138,13 +117,6 @@ export default function TradePage() {
 			const availableBalance = parseFloat(cryptoBalance?.balance || "0");
 			const requestedAmount = parseFloat(amount);
 
-			console.log("💸 Sell Validation:", {
-				cryptoBalance,
-				availableBalance,
-				requestedAmount,
-				hasEnough: requestedAmount <= availableBalance,
-			});
-
 			if (requestedAmount > availableBalance) {
 				setTradeResult({
 					success: false,
@@ -156,29 +128,23 @@ export default function TradePage() {
 
 		try {
 			let result;
-			console.log(`📤 Calling ${tradeType} API with:`, {
-				ask: selectedCoin,
-				[tradeType === "buy" ? "total" : "volume"]: amount,
-			});
 
 			if (tradeType === "buy") {
-				result = await buyCrypto(selectedCoin, amount);
+				result = await buyCrypto(selectedCoin, (
+					parseFloat(amount) /
+					parseFloat(selectRate?.buy || "1")
+				).toFixed(8), amount);
 			} else {
-				result = await sellCrypto(selectedCoin, amount);
+				result = await sellCrypto(selectedCoin, amount, (
+					parseFloat(amount) /
+					parseFloat(selectRate?.buy || "1")
+				).toFixed(8));
 			}
 
-			console.log("📥 Trade Result:", result);
-
 			if (result.success) {
-				// Set pending order with 15-second countdown
-				setPendingOrder({
-					id: result.data.data.id,
-					data: result.data.data,
-					countdown: 15,
-				});
 				setTradeResult({
 					success: true,
-					message: `Order created! You have 15 seconds to confirm.`,
+					message: `Order created successfully!`,
 				});
 			} else {
 				setTradeResult({
@@ -187,31 +153,12 @@ export default function TradePage() {
 				});
 			}
 		} catch (error) {
-			console.error("💥 Trade Error:", error);
 			setTradeResult({
 				success: false,
 				message: "An unexpected error occurred",
 			});
 		}
 	};
-
-	// Handle pending order countdown and requoting
-	useEffect(() => {
-		if (pendingOrder && pendingOrder.countdown > 0) {
-			const timer = setTimeout(() => {
-				if (pendingOrder.countdown === 1) {
-					// Auto-requote when countdown reaches 0
-					handleRequote();
-				} else {
-					setPendingOrder((prev) =>
-						prev ? { ...prev, countdown: prev.countdown - 1 } : null
-					);
-				}
-			}, 1000);
-			return () => clearTimeout(timer);
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [pendingOrder]);
 
 	// Clear trade result after 5 seconds
 	useEffect(() => {
@@ -247,8 +194,6 @@ export default function TradePage() {
 	const handleConfirmOrder = async () => {
 		if (!pendingOrder) return;
 
-		console.log("✅ Confirming order:", pendingOrder.id);
-
 		// NOTE: The buy/sell API automatically confirms orders
 		// The order is already executed when created
 		setTradeResult({
@@ -259,10 +204,8 @@ export default function TradePage() {
 		setAmount("");
 
 		// Refresh data after confirmation
-		console.log("🔄 Refreshing balances and transactions...");
 		await fetchBalance();
 		await refetchTransactions();
-		console.log("✅ Data refreshed!");
 	};
 
 	const handleCancelOrder = () => {
@@ -286,21 +229,19 @@ export default function TradePage() {
 					<div className="flex space-x-4">
 						<button
 							onClick={() => setTradeType("buy")}
-							className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-								tradeType === "buy"
-									? "bg-metallic-gold text-primary-black"
-									: "text-gray-400 hover:bg-medium-gray"
-							}`}
+							className={`px-4 py-2 rounded-lg font-medium transition-colors ${tradeType === "buy"
+								? "bg-metallic-gold text-primary-black"
+								: "text-gray-400 hover:bg-medium-gray"
+								}`}
 						>
 							Buy Crypto
 						</button>
 						<button
 							onClick={() => setTradeType("sell")}
-							className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-								tradeType === "sell"
-									? "bg-electric-blue text-soft-white"
-									: "text-gray-400 hover:bg-medium-gray"
-							}`}
+							className={`px-4 py-2 rounded-lg font-medium transition-colors ${tradeType === "sell"
+								? "bg-electric-blue text-soft-white"
+								: "text-gray-400 hover:bg-medium-gray"
+								}`}
 						>
 							Sell Crypto
 						</button>
@@ -336,9 +277,8 @@ export default function TradePage() {
 								value={amount}
 								onChange={(e) => setAmount(e.target.value)}
 								className="w-full p-3 bg-medium-gray border border-light-gray rounded-lg focus:ring-2 focus:ring-metallic-gold focus:border-transparent text-soft-white placeholder-gray-500"
-								placeholder={`Enter amount in ${
-									tradeType === "buy" ? "NGN" : selectedCoin
-								}`}
+								placeholder={`Enter amount in ${tradeType === "buy" ? "NGN" : selectedCoin
+									}`}
 							/>
 						</div>
 
@@ -410,11 +350,10 @@ export default function TradePage() {
 
 						{tradeResult && (
 							<div
-								className={`p-4 rounded-lg border flex items-center space-x-2 ${
-									tradeResult.success
-										? "bg-green-500 bg-opacity-10 border-green-500 text-green-400"
-										: "bg-red-500 bg-opacity-10 border-red-500 text-red-400"
-								}`}
+								className={`p-4 rounded-lg border flex items-center space-x-2 ${tradeResult.success
+									? "bg-green-500 bg-opacity-10 border-green-500 text-green-400"
+									: "bg-red-500 bg-opacity-10 border-red-500 text-red-400"
+									}`}
 							>
 								{tradeResult.success ? (
 									<CheckCircle className="h-5 w-5" />
@@ -448,13 +387,13 @@ export default function TradePage() {
 										<span className="text-soft-white">
 											{tradeType === "buy"
 												? `₦${parseFloat(
-														(pendingOrder.data.total as { amount?: string })
-															?.amount || amount
-												  ).toLocaleString()}`
+													(pendingOrder.data.total as { amount?: string })
+														?.amount || amount
+												).toLocaleString()}`
 												: `${parseFloat(
-														(pendingOrder.data.volume as { amount?: string })
-															?.amount || amount
-												  ).toFixed(8)} ${selectedCoin.toUpperCase()}`}
+													(pendingOrder.data.volume as { amount?: string })
+														?.amount || amount
+												).toFixed(8)} ${selectedCoin.toUpperCase()}`}
 										</span>
 									</div>
 									<div className="flex justify-between">
@@ -462,13 +401,13 @@ export default function TradePage() {
 										<span className="text-metallic-gold font-medium">
 											{tradeType === "buy"
 												? `${parseFloat(
-														(pendingOrder.data.volume as { amount?: string })
-															?.amount || "0"
-												  ).toFixed(8)} ${selectedCoin.toUpperCase()}`
+													(pendingOrder.data.volume as { amount?: string })
+														?.amount || "0"
+												).toFixed(8)} ${selectedCoin.toUpperCase()}`
 												: `₦${parseFloat(
-														(pendingOrder.data.total as { amount?: string })
-															?.amount || "0"
-												  ).toLocaleString()}`}
+													(pendingOrder.data.total as { amount?: string })
+														?.amount || "0"
+												).toLocaleString()}`}
 										</span>
 									</div>
 								</div>
@@ -499,21 +438,19 @@ export default function TradePage() {
 						<button
 							onClick={handleTrade}
 							disabled={tradeLoading || !amount || parseFloat(amount) <= 0}
-							className={`w-full py-3 px-4 rounded-lg font-medium transition-all flex items-center justify-center space-x-2 ${
-								tradeLoading || !amount || parseFloat(amount) <= 0
-									? "bg-gray-600 text-gray-400 cursor-not-allowed"
-									: tradeType === "buy"
+							className={`w-full py-3 px-4 rounded-lg font-medium transition-all flex items-center justify-center space-x-2 ${tradeLoading || !amount || parseFloat(amount) <= 0
+								? "bg-gray-600 text-gray-400 cursor-not-allowed"
+								: tradeType === "buy"
 									? "bg-metallic-gold text-primary-black hover:bg-gold-hover"
 									: "bg-electric-blue text-soft-white hover:bg-blue-hover"
-							}`}
+								}`}
 						>
 							{tradeLoading && <Loader2 className="h-4 w-4 animate-spin" />}
 							<span>
 								{tradeLoading
 									? "Processing..."
-									: `${
-											tradeType === "buy" ? "Buy" : "Sell"
-									  } ${selectedCoin.toUpperCase()}`}
+									: `${tradeType === "buy" ? "Buy" : "Sell"
+									} ${selectedCoin.toUpperCase()}`}
 							</span>
 						</button>
 					</div>
@@ -568,8 +505,8 @@ export default function TradePage() {
 										{bal.currency === "ngn"
 											? `₦${parseFloat(bal.balance || "0").toLocaleString()}`
 											: `${parseFloat(bal.balance || "0").toFixed(
-													bal.currency === "ngn" ? 2 : 8
-											  )} ${bal.currency.toUpperCase()}`}
+												bal.currency === "ngn" ? 2 : 8
+											)} ${bal.currency.toUpperCase()}`}
 									</span>
 								</div>
 							))

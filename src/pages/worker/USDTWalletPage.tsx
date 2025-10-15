@@ -32,7 +32,7 @@ export default function USDTWalletPage() {
 	} | null>(null);
 
 	const usdtTransactions = trasactions.filter(
-		(tx) => tx.market?.quote_unit === "usdt" || tx.market?.base_unit === "usdt"
+		(tx) => tx.coin === "usdt" || tx.market?.base_unit === "usdt"
 	);
 
 	const networks = [
@@ -241,12 +241,11 @@ export default function USDTWalletPage() {
 													onClick={() =>
 														copyToClipboard(addressData.address, network.id)
 													}
-													className={`p-2 ${
-														network.textColor
-													} hover:bg-opacity-20 hover:${network.color.replace(
-														"bg-",
-														"bg-"
-													)} rounded transition-colors flex-shrink-0`}
+													className={`p-2 ${network.textColor
+														} hover:bg-opacity-20 hover:${network.color.replace(
+															"bg-",
+															"bg-"
+														)} rounded transition-colors flex-shrink-0`}
 												>
 													{copiedAddress === network.id ? (
 														<CheckCircle className="h-4 w-4" />
@@ -270,8 +269,8 @@ export default function USDTWalletPage() {
 											{network.id === "trc20"
 												? "Low"
 												: network.id === "bep20"
-												? "Medium"
-												: "High"}
+													? "Medium"
+													: "High"}
 										</span>
 									</div>
 								</div>
@@ -308,62 +307,107 @@ export default function USDTWalletPage() {
 							USDT Transaction History
 						</h3>
 					</div>
-					<div className="p-6">
-						{transactionsLoading ? (
-							<div className="text-center py-8">
-								<Loader2 className="h-6 w-6 animate-spin text-metallic-gold mx-auto mb-4" />
-								<p className="text-gray-400">Loading transactions...</p>
-							</div>
-						) : (
-							<div className="space-y-4">
-								{usdtTransactions.length > 0 ? (
+					<div className="overflow-x-auto">
+						<table className="w-full min-h-[350px]">
+							<thead className="bg-medium-gray">
+								<tr>
+									<th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+										Transaction
+									</th>
+									<th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+										Amount
+									</th>
+									<th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+										Crypto Amount
+									</th>
+									<th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+										Status
+									</th>
+									<th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+										Date
+									</th>
+								</tr>
+							</thead>
+							<tbody className="divide-y divide-medium-gray">
+								{transactionsLoading ? (
+									<tr>
+										<td colSpan={5} className="px-6 py-8 text-center">
+											<Loader2 className="h-6 w-6 animate-spin text-metallic-gold mx-auto" />
+										</td>
+									</tr>
+								) : usdtTransactions.length === 0 ? (
+									<tr>
+										<td colSpan={5} className="px-6 py-8 text-center text-gray-400">
+											No USDT transactions found
+										</td>
+									</tr>
+								) : (
 									usdtTransactions.map((tx) => (
-										<div
-											key={tx.id}
-											className="flex items-center justify-between p-4 bg-medium-gray rounded-lg"
-										>
-											<div className="flex items-center space-x-4">
-												<div className="h-10 w-10 bg-metallic-gold bg-opacity-20 rounded-full flex items-center justify-center">
-													<DollarSign className="h-5 w-5 text-metallic-gold" />
+										<tr key={tx.id}>
+											<td className="px-6 py-4 whitespace-nowrap">
+												<div className="flex items-center">
+													<div
+														className={`h-8 w-8 rounded-full flex items-center justify-center mr-3 ${
+															tx.side === "buy"
+																? "bg-metallic-gold bg-opacity-20"
+																: "bg-red-500 bg-opacity-20"
+														}`}
+													>
+														{tx.side === "buy" ? (
+															<TrendingUp className="h-4 w-4 text-metallic-gold" />
+														) : (
+															<TrendingDown className="h-4 w-4 text-red-400" />
+														)}
+													</div>
+													<div>
+														<p className="font-medium text-soft-white capitalize">
+															{tx.side} {tx.market?.base_unit?.toUpperCase()}
+														</p>
+														<p className="text-sm text-gray-400">
+															#{tx.id?.toString().slice(0, 8)}
+														</p>
+													</div>
 												</div>
-												<div>
-													<p className="font-medium text-soft-white">
-														{tx.side} USDT
-													</p>
-													<p className="text-sm text-gray-400">
-														{new Date(tx.created_at).toLocaleString()}
-													</p>
-												</div>
-											</div>
-											<div className="text-right">
-												<p className="font-medium text-soft-white">
-													{tx.volume} USDT
-												</p>
+											</td>
+											<td className="px-6 py-4 whitespace-nowrap text-sm text-soft-white">
+												{new Intl.NumberFormat("en-NG", {
+													style: "currency",
+													currency: "NGN",
+													minimumFractionDigits: 0,
+												}).format(parseFloat(tx.naira || tx.total || "0"))}
+											</td>
+											<td className="px-6 py-4 whitespace-nowrap text-sm text-soft-white">
+												{tx.amount || tx.volume} {tx.coin?.toUpperCase()}
+											</td>
+											<td className="px-6 py-4 whitespace-nowrap">
 												<span
-													className={`text-xs px-2 py-1 rounded-full ${
-														tx.state === "done"
+													className={`px-2 py-1 text-xs font-medium rounded-full ${
+														tx.status === "done"
 															? "bg-green-500 bg-opacity-20 text-green-400"
-															: tx.state === "wait"
+															: tx.status === "wait"
 															? "bg-yellow-500 bg-opacity-20 text-yellow-400"
+															: tx.status === "completed"
+															? "bg-blue-500 bg-opacity-20 text-blue-400"
 															: "bg-red-500 bg-opacity-20 text-red-400"
 													}`}
 												>
-													{tx.state}
+													{tx.status === "done" ? "COMPLETED" : tx.status.toUpperCase()}
 												</span>
-											</div>
-										</div>
+											</td>
+											<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
+												{new Date(tx.date).toLocaleString("en-NG", {
+													year: "numeric",
+													month: "short",
+													day: "numeric",
+													hour: "2-digit",
+													minute: "2-digit",
+												})}
+											</td>
+										</tr>
 									))
-								) : (
-									<div className="text-center py-8">
-										<DollarSign className="h-12 w-12 text-gray-500 mx-auto mb-4" />
-										<p className="text-gray-400">No transactions yet</p>
-										<p className="text-sm text-gray-500">
-											Your USDT transactions will appear here
-										</p>
-									</div>
 								)}
-							</div>
-						)}
+							</tbody>
+						</table>
 					</div>
 				</div>
 			</div>

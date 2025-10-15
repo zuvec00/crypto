@@ -13,7 +13,7 @@ export const useTransactions = () => {
     try {
       const token = localStorage.getItem("access_token");
 
-      const response = await fetch(`${API_BASE_URL}/trade`, {
+      const response = await fetch(`${API_BASE_URL}/trade/local`, {
         method: "GET",
         credentials: "include",
         headers: {
@@ -25,7 +25,7 @@ export const useTransactions = () => {
       if (!response.ok) throw new Error("Failed to fetch rates");
 
       const data = await response.json();
-      
+
       // Log the /trade endpoint response structure
       console.log("💰 /trade Endpoint Response:", {
         data,
@@ -33,7 +33,7 @@ export const useTransactions = () => {
         firstTransaction: data?.[0],
         transactionFields: data?.[0] ? Object.keys(data[0]) : [],
       });
-      
+
       setTransactions(data);
       setError(null);
     } catch (err) {
@@ -58,21 +58,13 @@ export const useTransactions = () => {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       if (!response.ok) throw new Error("Failed to fetch rates");
 
       const data = await response.json();
-      
-      // Log the daily transactions response
-      console.log("📅 /trade?start_date=TODAY Response:", {
-        data,
-        count: data?.length || 0,
-        firstTransaction: data?.[0],
-        todayDate: new Date().toISOString().split("T")[0],
-      });
-      
+
       setDailyTransaction(data);
       setError(null);
     } catch (err) {

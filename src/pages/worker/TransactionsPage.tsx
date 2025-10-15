@@ -28,21 +28,15 @@ export default function TransactionsPage() {
 		if (!txToUse) return [];
 
 		const filtered = txToUse.filter((tx) => {
-			const typeMatch = typeFilter === "all" || tx.side === typeFilter;
+			const typeMatch = typeFilter === "all" || tx.type === typeFilter;
 			const coinMatch =
-				coinFilter === "all" || tx.market?.base_unit === coinFilter;
+				coinFilter === "all" || tx.coin === coinFilter;
 			return typeMatch && coinMatch;
 		});
 
-		console.log("🔍 Filtered Transactions:", {
-			sourceUsed:
-				trasactions && trasactions.length > 0
-					? "all transactions"
-					: "daily transactions",
-			totalAvailable: txToUse?.length || 0,
-			afterFilter: filtered.length,
-			filters: { typeFilter, coinFilter },
-		});
+		console.log("the filtered data")
+		console.log(filtered)
+
 
 		return filtered;
 	}, [trasactions, dailyTransaction, typeFilter, coinFilter]);
@@ -68,7 +62,7 @@ export default function TransactionsPage() {
 					tx.market?.base_unit?.toUpperCase() || "",
 					tx.volume?.amount || tx.volume,
 					tx.total?.amount || tx.total,
-					tx.state.toUpperCase(),
+					tx.status.toUpperCase(),
 					new Date(tx.updated_at).toLocaleString(),
 				].join(",")
 			),
@@ -227,11 +221,10 @@ export default function TransactionsPage() {
 										<td className="px-6 py-4 whitespace-nowrap">
 											<div className="flex items-center">
 												<div
-													className={`h-8 w-8 rounded-full flex items-center justify-center mr-3 ${
-														tx.side === "buy"
-															? "bg-metallic-gold bg-opacity-20"
-															: "bg-red-500 bg-opacity-20"
-													}`}
+													className={`h-8 w-8 rounded-full flex items-center justify-center mr-3 ${tx.side === "buy"
+														? "bg-metallic-gold bg-opacity-20"
+														: "bg-red-500 bg-opacity-20"
+														}`}
 												>
 													{tx.side === "buy" ? (
 														<TrendingUp className="h-4 w-4 text-metallic-gold" />
@@ -251,32 +244,31 @@ export default function TransactionsPage() {
 										</td>
 										<td className="px-6 py-4 whitespace-nowrap text-sm text-soft-white">
 											{formatCurrency(
-												parseFloat(tx.total?.amount || tx.total || "0")
+												parseFloat(tx.naira || tx.total || "0")
 											)}
 										</td>
 										<td className="px-6 py-4 whitespace-nowrap text-sm text-soft-white">
-											{tx.volume?.amount || tx.volume}{" "}
-											{tx.market?.base_unit?.toUpperCase()}
+											{tx.amount || tx.volume}{" "}
+											{tx.coin?.toUpperCase()}
 										</td>
 										<td className="px-6 py-4 whitespace-nowrap">
 											<span
-												className={`px-2 py-1 text-xs font-medium rounded-full ${
-													tx.state === "done"
-														? "bg-green-500 bg-opacity-20 text-green-400"
-														: tx.state === "wait"
+												className={`px-2 py-1 text-xs font-medium rounded-full ${tx.status === "done"
+													? "bg-green-500 bg-opacity-20 text-green-400"
+													: tx.status === "wait"
 														? "bg-yellow-500 bg-opacity-20 text-yellow-400"
-														: tx.state === "confirm"
-														? "bg-blue-500 bg-opacity-20 text-blue-400"
-														: "bg-red-500 bg-opacity-20 text-red-400"
-												}`}
+														: tx.status === "completed"
+															? "bg-blue-500 bg-opacity-20 text-blue-400"
+															: "bg-red-500 bg-opacity-20 text-red-400"
+													}`}
 											>
-												{tx.state === "done"
+												{tx.status === "done"
 													? "COMPLETED"
-													: tx.state.toUpperCase()}
+													: tx.status.toUpperCase()}
 											</span>
 										</td>
 										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
-											{formatDate(tx.updated_at)}
+											{formatDate(tx.date)}
 										</td>
 									</tr>
 								))

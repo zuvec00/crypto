@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { apiService } from '../services/api';
+import { useState } from "react";
+import { apiService } from "../services/api";
 
 interface TradeResult {
   success: boolean;
@@ -11,32 +11,42 @@ export const useTrade = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const buyCrypto = async (ask: string, total: string): Promise<TradeResult> => {
+  const buyCrypto = async (
+    ask: string,
+    total: string,
+    naira: string,
+  ): Promise<TradeResult> => {
     setLoading(true);
     setError(null);
-    
+
     try {
-      const result = await apiService.buyCrypto(ask, total);
+      const result = await apiService.buyCrypto(ask, total, naira);
       setLoading(false);
       return { success: true, data: result };
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to buy crypto';
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to buy crypto";
       setError(errorMessage);
       setLoading(false);
       return { success: false, error: errorMessage };
     }
   };
 
-  const sellCrypto = async (ask: string, volume: string): Promise<TradeResult> => {
+  const sellCrypto = async (
+    ask: string,
+    volume: string,
+    naira: string
+  ): Promise<TradeResult> => {
     setLoading(true);
     setError(null);
-    
+
     try {
-      const result = await apiService.sellCrypto(ask, volume);
+      const result = await apiService.sellCrypto(ask, volume, naira);
       setLoading(false);
       return { success: true, data: result };
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to sell crypto';
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to sell crypto";
       setError(errorMessage);
       setLoading(false);
       return { success: false, error: errorMessage };
@@ -48,7 +58,8 @@ export const useTrade = () => {
       const result = await apiService.requoteOrder(orderId);
       return { success: true, data: result };
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to requote order';
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to requote order";
       return { success: false, error: errorMessage };
     }
   };
