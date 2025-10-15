@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { API_CONFIG } from "../config/api";
 import { decodeJWT, isTokenExpired } from "../utils/jwt";
 
@@ -147,33 +148,45 @@ class ApiService {
   }
 
   async buyCrypto(ask: string, total: string): Promise<any> {
+    const requestBody = { ask, total };
+    console.log("🛒 Buy Crypto Request:", requestBody);
+
     const response = await fetch(`${API_BASE_URL}/trade/buy`, {
       method: "POST",
       headers: this.getAuthHeaders(),
-      body: JSON.stringify({ ask, total }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
       const error: ApiError = await response.json();
+      console.error("❌ Buy Crypto Error:", error);
       throw new Error(error.message || "Failed to buy crypto");
     }
 
-    return response.json();
+    const data = await response.json();
+    console.log("✅ Buy Crypto Success:", data);
+    return data;
   }
 
   async sellCrypto(ask: string, volume: string): Promise<any> {
+    const requestBody = { ask, volume };
+    console.log("💸 Sell Crypto Request:", requestBody);
+
     const response = await fetch(`${API_BASE_URL}/trade/sell`, {
       method: "POST",
       headers: this.getAuthHeaders(),
-      body: JSON.stringify({ ask, volume }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
       const error: ApiError = await response.json();
+      console.error("❌ Sell Crypto Error:", error);
       throw new Error(error.message || "Failed to sell crypto");
     }
 
-    return response.json();
+    const data = await response.json();
+    console.log("✅ Sell Crypto Success:", data);
+    return data;
   }
 
   async requoteOrder(orderId: string): Promise<any> {
@@ -283,6 +296,34 @@ class ApiService {
     return response.json();
   }
 
+  async getAllTransactions(params?: {
+    market?: string;
+    state?: string;
+    side?: string;
+  }): Promise<any> {
+    const queryParams = new URLSearchParams();
+    if (params?.market) queryParams.append('market', params.market);
+    if (params?.state) queryParams.append('state', params.state);
+    if (params?.side) queryParams.append('side', params.side);
+    
+    const queryString = queryParams.toString();
+    const url = queryString 
+      ? `${API_BASE_URL}/trade/all?${queryString}`
+      : `${API_BASE_URL}/trade/all`;
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const error: ApiError = await response.json();
+      throw new Error(error.message || "Failed to get all transactions");
+    }
+
+    return response.json();
+  }
+
   async getVolumeTraded(): Promise<any> {
     const response = await fetch(`${API_BASE_URL}/trade/volume-traded`, {
       method: "GET",
@@ -320,20 +361,18 @@ class ApiService {
     reference?: string;
     narration?: string;
   }): Promise<unknown> {
-    // Use the correct backend endpoint for sending crypto
+    const requestBody: any = {
+      currency: data.currency,
+      amount: data.amount,
+      fund_uid: data.fund_uid,
+      transaction_note: data.transaction_note || "Crypto withdrawal",
+      narration: data.narration || `Send ${data.amount} ${data.currency.toUpperCase()}`,
+    };
+
     const response = await fetch(`${API_BASE_URL}/trade/send_crypto`, {
       method: "POST",
       headers: this.getAuthHeaders(),
-      body: JSON.stringify({
-        currency: data.currency,
-        amount: data.amount,
-        transaction_note: data.transaction_note,
-        narration: data.narration,
-        // Note: fund_uid and network might need to be handled differently
-        // depending on how your backend processes them
-        fund_uid: data.fund_uid,
-        network: data.network
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {

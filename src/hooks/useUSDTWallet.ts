@@ -47,6 +47,14 @@ export const useUSDTWallet = () => {
       // Fetch balance
       const balanceData = await fetchWalletBalance();
       
+      console.log("💵 /wallet/usdt/balance Response (Individual Wallet):", {
+        balanceData,
+        balanceField: balanceData?.balance,
+        lockedField: balanceData?.locked,
+        convertedBalanceField: balanceData?.converted_balance,
+        allFields: balanceData ? Object.entries(balanceData) : [],
+      });
+      
       setWallet({
         addresses,
         balance: balanceData?.balance || '0.000000',

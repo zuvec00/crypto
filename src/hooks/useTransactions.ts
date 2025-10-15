@@ -25,6 +25,15 @@ export const useTransactions = () => {
       if (!response.ok) throw new Error("Failed to fetch rates");
 
       const data = await response.json();
+      
+      // Log the /trade endpoint response structure
+      console.log("💰 /trade Endpoint Response:", {
+        data,
+        count: data?.length || 0,
+        firstTransaction: data?.[0],
+        transactionFields: data?.[0] ? Object.keys(data[0]) : [],
+      });
+      
       setTransactions(data);
       setError(null);
     } catch (err) {
@@ -55,6 +64,15 @@ export const useTransactions = () => {
       if (!response.ok) throw new Error("Failed to fetch rates");
 
       const data = await response.json();
+      
+      // Log the daily transactions response
+      console.log("📅 /trade?start_date=TODAY Response:", {
+        data,
+        count: data?.length || 0,
+        firstTransaction: data?.[0],
+        todayDate: new Date().toISOString().split("T")[0],
+      });
+      
       setDailyTransaction(data);
       setError(null);
     } catch (err) {
@@ -76,11 +94,17 @@ export const useTransactions = () => {
     };
   }, []);
 
+  const refetchAll = async () => {
+    console.log("🔄 Refetching all transactions...");
+    await fetchTransactions();
+    await fetchDailyTransactions();
+  };
+
   return {
     trasactions,
     dailyTransaction,
     loading,
     error,
-    refetch: fetchTransactions,
+    refetch: refetchAll,
   };
 };
