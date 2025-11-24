@@ -7,13 +7,13 @@ body {
   font-family: 'Poppins', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #121212;
+  background-color: #0A0E1A;
   color: #F9FAFB;
 }
 
 @layer components {
   .btn-primary {
-    @apply bg-metallic-gold text-primary-black px-4 py-2 rounded-lg hover:bg-gold-hover transition-all font-medium;
+    @apply bg-steel-blue text-soft-white px-4 py-2 rounded-lg hover:bg-blue-hover transition-all font-medium;
   }
   
   .btn-secondary {
@@ -29,7 +29,7 @@ body {
   }
   
   .input-field {
-    @apply w-full px-4 py-3 bg-medium-gray border border-light-gray rounded-lg focus:ring-2 focus:ring-metallic-gold focus:border-transparent outline-none transition-all text-soft-white;
+    @apply w-full px-4 py-3 bg-medium-gray border border-light-gray rounded-lg focus:ring-2 focus:ring-steel-blue focus:border-transparent outline-none transition-all text-soft-white;
   }
   
   .status-badge {
@@ -41,7 +41,7 @@ body {
   }
   
   .sidebar-item-active {
-    @apply bg-metallic-gold bg-opacity-20 text-metallic-gold border-r-2 border-metallic-gold;
+    @apply bg-steel-blue bg-opacity-20 text-steel-blue border-r-2 border-steel-blue;
   }
   
   .sidebar-item-inactive {

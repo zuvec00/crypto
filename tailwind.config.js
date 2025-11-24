@@ -4,16 +4,18 @@ export default {
   theme: {
     extend: {
       colors: {
-        'primary-black': '#121212',
-        'deep-black': '#0E0E0E',
-        'metallic-gold': '#D9A441',
-        'electric-blue': '#296CFF',
+        'primary-black': '#0A0E1A',
+        'deep-black': '#060912',
+        'steel-blue': '#3B82F6',
+        'electric-blue': '#2563EB',
         'soft-white': '#F9FAFB',
-        'dark-gray': '#1F1F1F',
-        'medium-gray': '#2A2A2A',
-        'light-gray': '#404040',
-        'gold-hover': '#E6B555',
-        'blue-hover': '#4A7FFF',
+        'dark-gray': '#1E293B',
+        'medium-gray': '#334155',
+        'light-gray': '#475569',
+        'blue-hover': '#60A5FA',
+        'slate-dark': '#0F172A',
+        'slate-medium': '#1E293B',
+        'slate-light': '#64748B',
       },
       fontFamily: {
         'poppins': ['Poppins', 'sans-serif'],
