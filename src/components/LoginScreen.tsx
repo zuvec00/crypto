@@ -133,10 +133,10 @@ export default function LoginScreen() {
 					</form>
 
 					<div className="mt-6 p-4 bg-electric-blue bg-opacity-20 rounded-lg border border-electric-blue border-opacity-30">
-						<div className="flex items-center text-sm text-electric-blue">
+						{/* <div className="flex items-center text-sm text-electric-blue">
 							<CheckCircle className="h-4 w-4 mr-2 text-electric-blue" />
 							<span className="font-medium">Quidax API Connected</span>
-						</div>
+						</div> */}
 					</div>
 				</div>
 
