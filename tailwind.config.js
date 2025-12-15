@@ -16,6 +16,7 @@ export default {
         'slate-dark': '#0F172A',
         'slate-medium': '#1E293B',
         'slate-light': '#64748B',
+        'metallic-gold': '#10B981',
       },
       fontFamily: {
         'poppins': ['Poppins', 'sans-serif'],
