@@ -13,10 +13,12 @@ export default function Logo({ className = "", size = "md" }: LogoProps) {
 	};
 
 	return (
-		<img
-			src={logoImage}
-			alt="Logo"
-			className={`${sizeClasses[size]} ${className}`}
-		/>
+		<div className="bg-white p-1 rounded-[12px]">
+			<img
+				src={logoImage}
+				alt="Logo"
+				className={`${sizeClasses[size]} ${className}`}
+			/>
+		</div>
 	);
 }

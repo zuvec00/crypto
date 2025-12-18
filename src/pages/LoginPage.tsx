@@ -33,11 +33,13 @@ export default function LoginPage() {
 		<div className="min-h-screen bg-primary-black flex items-center justify-center p-4">
 			<div className="max-w-md w-full space-y-8">
 				<div className="text-center">
-					<div className="mx-auto h-16 w-16 bg-metallic-gold rounded-full flex items-center justify-center mb-6">
+					{/* <div className="mx-auto h-16 w-16 bg-metallic-gold rounded-full flex items-center justify-center mb-6">
 						<Shield className="h-8 w-8 text-primary-black" />
-					</div>
+					</div> */}
 					<div className="flex items-center justify-center gap-3 mb-2">
-						<img src={logo} alt="Corbit Global" className="h-10 w-10" />
+						<div className="bg-white p-1 rounded-[12px]">
+							<img src={logo} alt="Corbit Global" className="h-10 w-10" />
+						</div>
 						<h2 className="text-3xl font-bold text-soft-white">
 							Corbit Global
 						</h2>
