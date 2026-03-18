@@ -1,10 +1,12 @@
 import { useMemo, useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
 	ChevronDown,
 	RefreshCw,
 	Loader2,
 	CheckCircle,
 	AlertCircle,
+	X,
 } from "lucide-react";
 import { useRates } from "../../hooks/useRates";
 import { useWalletBalances } from "../../hooks/useWalletBalances";
@@ -12,9 +14,10 @@ import { useTransactions } from "../../hooks/useTransactions";
 import { useTrade } from "../../hooks/useTrade";
 
 export default function TradePage() {
-	const [selectedCoin, setSelectedCoin] = useState("btc");
+	const [searchParams] = useSearchParams();
+	const [selectedCoin, setSelectedCoin] = useState(searchParams.get("currency") || "btc");
 	const [amount, setAmount] = useState("");
-	const [tradeType, setTradeType] = useState<"buy" | "sell">("buy");
+	const [tradeType, setTradeType] = useState<"buy" | "sell">(searchParams.get("type") as "buy" | "sell" || "buy");
 	const [tradeResult, setTradeResult] = useState<{
 		success: boolean;
 		message: string;
@@ -162,25 +165,48 @@ export default function TradePage() {
 
 	// Clear trade result after 5 seconds
 	useEffect(() => {
-		if (tradeResult && !pendingOrder) {
+		if (tradeResult) {
 			const timer = setTimeout(() => setTradeResult(null), 5000);
 			return () => clearTimeout(timer);
 		}
-	}, [tradeResult, pendingOrder]);
+	}, [tradeResult]);
+
+	// Toast notification component
+	const ToastNotification = ({ result, onClose }: { result: { success: boolean; message: string }, onClose: () => void }) => (
+		<div className="fixed top-4 right-4 z-50 animate-in slide-in-from-top-2 duration-300">
+			<div className={`p-4 rounded-lg border shadow-lg max-w-sm flex items-start space-x-3 ${result.success
+				? "bg-green-900 border-green-600 text-green-100"
+				: "bg-red-900 border-red-600 text-red-100"
+				}`}>
+				{result.success ? (
+					<CheckCircle className="h-5 w-5 text-green-400 flex-shrink-0 mt-0.5" />
+				) : (
+					<AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0 mt-0.5" />
+				)}
+				<div className="flex-1">
+					<p className="text-sm font-medium">
+						{result.success ? "Success" : "Error"}
+					</p>
+					<p className="text-sm opacity-90 mt-1">{result.message}</p>
+				</div>
+				<button
+					onClick={onClose}
+					className="text-gray-400 hover:text-white transition-colors"
+				>
+					<X className="h-4 w-4" />
+				</button>
+			</div>
+		</div>
+	);
 
 	const handleRequote = async () => {
 		if (!pendingOrder) return;
 
 		const result = await requoteOrder(pendingOrder.id);
 		if (result.success) {
-			setPendingOrder({
-				id: pendingOrder.id,
-				data: result.data.data,
-				countdown: 15,
-			});
 			setTradeResult({
 				success: true,
-				message: "Order prices updated! You have 15 seconds to confirm.",
+				message: "Order prices updated!",
 			});
 		} else {
 			setTradeResult({
@@ -214,15 +240,22 @@ export default function TradePage() {
 	};
 
 	return (
-		<div className="space-y-8">
-			<div>
-				<h1 className="text-2xl font-bold text-soft-white mb-2">
-					Buy & Sell Cryptocurrency
-				</h1>
-				<p className="text-gray-400">
-					Trade cryptocurrencies with competitive rates
-				</p>
-			</div>
+		<>
+			{tradeResult && (
+				<ToastNotification
+					result={tradeResult}
+					onClose={() => setTradeResult(null)}
+				/>
+			)}
+			<div className="space-y-8">
+				<div>
+					<h1 className="text-2xl font-bold text-soft-white mb-2">
+						Buy & Sell Cryptocurrency
+					</h1>
+					<p className="text-gray-400">
+						Trade cryptocurrencies with competitive rates
+					</p>
+				</div>
 
 			<div className="bg-dark-gray rounded-xl border border-medium-gray">
 				<div className="p-6 border-b border-medium-gray">
@@ -248,25 +281,25 @@ export default function TradePage() {
 					</div>
 				</div>
 
-				<div className="p-6">
-					<div className="max-w-md mx-auto space-y-6">
-						<div>
-							<label className="block text-sm font-medium text-soft-white mb-2">
-								Select Cryptocurrency
-							</label>
-							<div className="relative">
-								<select
-									value={selectedCoin}
-									onChange={(e) => setSelectedCoin(e.target.value)}
-									className="w-full p-3 bg-medium-gray border border-light-gray rounded-lg focus:ring-2 focus:ring-metallic-gold focus:border-transparent appearance-none text-soft-white"
-								>
-									<option value="btc">Bitcoin (BTC)</option>
-									<option value="eth">Ethereum (ETH)</option>
-									<option value="usdt">USDT (All Networks)</option>
-								</select>
-								<ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+					<div className="p-6">
+						<div className="max-w-md mx-auto space-y-6">
+							<div>
+								<label className="block text-sm font-medium text-soft-white mb-2">
+									Select Cryptocurrency
+								</label>
+								<div className="relative">
+									<select
+										value={selectedCoin}
+										onChange={(e) => setSelectedCoin(e.target.value)}
+										className="w-full p-3 bg-medium-gray border border-light-gray rounded-lg focus:ring-2 focus:ring-metallic-gold focus:border-transparent appearance-none text-soft-white"
+									>
+										<option value="btc">Bitcoin (BTC)</option>
+										<option value="eth">Ethereum (ETH)</option>
+										<option value="usdt">USDT (All Networks)</option>
+									</select>
+									<ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+								</div>
 							</div>
-						</div>
 
 						<div>
 							<label className="block text-sm font-medium text-soft-white mb-2">
@@ -364,16 +397,16 @@ export default function TradePage() {
 							</div>
 						)}
 
-						{pendingOrder && (
-							<div className="p-4 bg-yellow-500 bg-opacity-10 border border-yellow-500 rounded-lg space-y-4">
-								<div className="flex items-center justify-between">
-									<span className="text-yellow-400 font-medium">
-										Order Pending Confirmation
-									</span>
-									<span className="text-yellow-400 font-mono text-lg">
-										{pendingOrder.countdown}s
-									</span>
-								</div>
+							{pendingOrder && (
+								<div className="p-4 bg-yellow-500 bg-opacity-10 border border-yellow-500 rounded-lg space-y-4">
+									<div className="flex items-center justify-between">
+										<span className="text-yellow-400 font-medium">
+											Order Pending Confirmation
+										</span>
+										<span className="text-yellow-400 font-mono text-lg">
+											{pendingOrder.countdown}s
+										</span>
+									</div>
 
 								<div className="space-y-2 text-sm">
 									<div className="flex justify-between">
@@ -412,28 +445,28 @@ export default function TradePage() {
 									</div>
 								</div>
 
-								<div className="flex space-x-3">
-									<button
-										onClick={handleConfirmOrder}
-										className="flex-1 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
-									>
-										Confirm Order
-									</button>
-									<button
-										onClick={handleRequote}
-										className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
-									>
-										<RefreshCw className="h-4 w-4" />
-									</button>
-									<button
-										onClick={handleCancelOrder}
-										className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-									>
-										Cancel
-									</button>
+									<div className="flex space-x-3">
+										<button
+											onClick={handleConfirmOrder}
+											className="flex-1 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+										>
+											Confirm Order
+										</button>
+										<button
+											onClick={handleRequote}
+											className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
+										>
+											<RefreshCw className="h-4 w-4" />
+										</button>
+										<button
+											onClick={handleCancelOrder}
+											className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+										>
+											Cancel
+										</button>
+									</div>
 								</div>
-							</div>
-						)}
+							)}
 
 						<button
 							onClick={handleTrade}
@@ -457,32 +490,32 @@ export default function TradePage() {
 				</div>
 			</div>
 
-			<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-				<div className="bg-dark-gray p-6 rounded-xl border border-medium-gray">
-					<h3 className="font-semibold text-soft-white mb-4">Current Rates</h3>
-					<div className="space-y-3">
-						{ratesLoading ? (
-							<div className="flex items-center justify-center py-4">
-								<RefreshCw className="h-5 w-5 animate-spin text-metallic-gold" />
-							</div>
-						) : ratesError ? (
-							<p className="text-red-400 text-sm text-center">
-								Error loading rates
-							</p>
-						) : (
-							ratesToUse.map((rate) => (
-								<div key={rate.marker} className="flex justify-between">
-									<span className="text-gray-400">
-										{rate.marker.split("ngn")[0].toUpperCase()}
-									</span>
-									<span className="font-medium text-soft-white">
-										₦{rate[tradeType]}
-									</span>
+				<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+					<div className="bg-dark-gray p-6 rounded-xl border border-medium-gray">
+						<h3 className="font-semibold text-soft-white mb-4">Current Rates</h3>
+						<div className="space-y-3">
+							{ratesLoading ? (
+								<div className="flex items-center justify-center py-4">
+									<RefreshCw className="h-5 w-5 animate-spin text-metallic-gold" />
 								</div>
-							))
-						)}
+							) : ratesError ? (
+								<p className="text-red-400 text-sm text-center">
+									Error loading rates
+								</p>
+							) : (
+								ratesToUse.map((rate) => (
+									<div key={rate.marker} className="flex justify-between">
+										<span className="text-gray-400">
+											{rate.marker.split("ngn")[0].toUpperCase()}
+										</span>
+										<span className="font-medium text-soft-white">
+											₦{rate[tradeType]}
+										</span>
+									</div>
+								))
+							)}
+						</div>
 					</div>
-				</div>
 
 				<div className="bg-dark-gray p-6 rounded-xl border border-medium-gray">
 					<h3 className="font-semibold text-soft-white mb-4">Your Balances</h3>
@@ -514,45 +547,46 @@ export default function TradePage() {
 					</div>
 				</div>
 
-				<div className="bg-dark-gray p-6 rounded-xl border border-medium-gray">
-					<h3 className="font-semibold text-soft-white mb-4">Trading Limits</h3>
-					<div className="space-y-3">
-						<div className="flex justify-between">
-							<span className="text-gray-400">Daily Limit</span>
-							<span className="font-medium text-soft-white">
-								₦{TRADING_LIMIT.toLocaleString()}
-							</span>
-						</div>
-						<div className="flex justify-between">
-							<span className="text-gray-400">Used Today</span>
-							{transactionsLoading ? (
-								<RefreshCw className="h-4 w-4 animate-spin text-metallic-gold" />
-							) : transactionsError ? (
-								<span className="text-red-400 text-sm">Error</span>
-							) : (
+					<div className="bg-dark-gray p-6 rounded-xl border border-medium-gray">
+						<h3 className="font-semibold text-soft-white mb-4">Trading Limits</h3>
+						<div className="space-y-3">
+							<div className="flex justify-between">
+								<span className="text-gray-400">Daily Limit</span>
 								<span className="font-medium text-soft-white">
-									₦{totalDailyTransaction?.toLocaleString() || "0"}
+									₦{TRADING_LIMIT.toLocaleString()}
 								</span>
-							)}
-						</div>
-						<div className="flex justify-between">
-							<span className="text-gray-400">Remaining</span>
-							{transactionsLoading ? (
-								<RefreshCw className="h-4 w-4 animate-spin text-metallic-gold" />
-							) : transactionsError ? (
-								<span className="text-red-400 text-sm">Error</span>
-							) : (
-								<span className="font-medium text-metallic-gold">
-									₦
-									{(
-										TRADING_LIMIT - (totalDailyTransaction || 0)
-									).toLocaleString()}
-								</span>
-							)}
+							</div>
+							<div className="flex justify-between">
+								<span className="text-gray-400">Used Today</span>
+								{transactionsLoading ? (
+									<RefreshCw className="h-4 w-4 animate-spin text-metallic-gold" />
+								) : transactionsError ? (
+									<span className="text-red-400 text-sm">Error</span>
+								) : (
+									<span className="font-medium text-soft-white">
+										₦{totalDailyTransaction?.toLocaleString() || "0"}
+									</span>
+								)}
+							</div>
+							<div className="flex justify-between">
+								<span className="text-gray-400">Remaining</span>
+								{transactionsLoading ? (
+									<RefreshCw className="h-4 w-4 animate-spin text-metallic-gold" />
+								) : transactionsError ? (
+									<span className="text-red-400 text-sm">Error</span>
+								) : (
+									<span className="font-medium text-metallic-gold">
+										₦
+										{(
+											TRADING_LIMIT - (totalDailyTransaction || 0)
+										).toLocaleString()}
+									</span>
+								)}
+							</div>
 						</div>
 					</div>
 				</div>
 			</div>
-		</div>
+		</>
 	);
 }

@@ -147,18 +147,48 @@ class ApiService {
     return response.json();
   }
 
-  async buyCrypto(ask: string, total: string, naira: string): Promise<any> {
-    const requestBody = { ask, volume: total, naira };
+  async validateBankAccount(requestBody: {
+    accountNumber: string;
+    bankCode: string;
+  }): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/bank/verify`, {
+      method: "POST",
+      headers: this.getAuthHeaders(),
+      credentials: "include",
+      body: JSON.stringify(requestBody),
+    });
+    if (!response.ok) {
+      const error: ApiError = await response.json();
+      throw new Error(
+        error.message || "Failed to fetch bank account, please try again",
+      );
+    }
+
+    return response.json();
+  }
+
+  async buyCrypto(ask: string, volume: string, naira: string): Promise<any> {
+    const requestBody = { ask, volume, naira };
 
     const response = await fetch(`${API_BASE_URL}/trade/buy`, {
       method: "POST",
       headers: this.getAuthHeaders(),
+      credentials: "include",
       body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
-      const error: ApiError = await response.json();
-      throw new Error(error.message || "Failed to buy crypto");
+      const errorText = await response.text();
+
+      try {
+        const error: ApiError = JSON.parse(errorText);
+        console.error("❌ Buy Crypto Error:", error);
+        throw new Error(error.message || "Failed to buy crypto");
+      } catch (parseError) {
+        throw new Error(
+          `Failed to buy crypto: ${response.status} - ${errorText}`,
+        );
+      }
     }
 
     const data = await response.json();
@@ -171,6 +201,7 @@ class ApiService {
     const response = await fetch(`${API_BASE_URL}/trade/sell`, {
       method: "POST",
       headers: this.getAuthHeaders(),
+      credentials: "include",
       body: JSON.stringify(requestBody),
     });
 
@@ -344,6 +375,35 @@ class ApiService {
     if (!response.ok) {
       const error: ApiError = await response.json();
       throw new Error(error.message || "Failed to create USDT networks");
+    }
+
+    return response.json();
+  }
+
+  async withdrawToBank(
+    ngnAmount: number,
+    currency: string,
+    bankDetails: {
+      accountNumber: string;
+      bankName: string;
+      accountName: string;
+    },
+  ): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/trade/withdraw-ngn`, {
+      method: "POST",
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({
+        ngn_amount: ngnAmount.toString(),
+        currency: currency.toLowerCase(),
+        bank_details: bankDetails,
+        transaction_note: `Withdrawal to ${bankDetails.bankName} - ${bankDetails.accountNumber}`,
+        narration: `NGN ${ngnAmount} withdrawal to ${bankDetails.accountName}`,
+      }),
+    });
+
+    if (!response.ok) {
+      const error: ApiError = await response.json();
+      throw new Error(error.message || "Failed to process withdrawal");
     }
 
     return response.json();

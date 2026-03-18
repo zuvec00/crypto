@@ -17,7 +17,9 @@ import {
 	TrendingUp,
 	DollarSign,
 	Bitcoin,
+	BanknoteIcon,
 	Coins,
+	CreditCard,
 } from "lucide-react";
 import LoginPage from "./pages/LoginPage";
 import Layout from "./components/Layout";
@@ -32,11 +34,13 @@ import NGNWallet from "./pages/worker/NGNWalletPage";
 import BTCWallet from "./pages/worker/BTCWalletPage";
 import ETHWallet from "./pages/worker/ETHWalletPage";
 import USDTWallet from "./pages/worker/USDTWalletPage";
+import WithdrawPage from "./pages/worker/WithdrawPage";
 
 // Admin Pages
 import AdminDashboard from "./pages/admin/DashboardPage";
 import AdminUsers from "./pages/admin/UsersPage";
 import AdminTransactions from "./pages/admin/TransactionsPage";
+import AdminWithdrawals from "./pages/admin/WithdrawalsPage";
 
 export interface User {
 	id: string;
@@ -77,14 +81,16 @@ function App() {
 		{ icon: Coins, label: "Ethereum Wallet", path: "/worker/eth-wallet" },
 		{ icon: DollarSign, label: "USDT Wallet", path: "/worker/usdt-wallet" },
 		{ icon: ArrowUpDown, label: "Buy/Sell", path: "/worker/trade" },
+		{ icon: BanknoteIcon, label: "Withdraw", path: "/worker/withdraw" },
 		{ icon: History, label: "Transactions", path: "/worker/transactions" },
-		{ icon: Settings, label: "Settings", path: "/worker/settings" },
+		// { icon: Settings, label: "Settings", path: "/worker/settings" },
 	];
 
 	const adminMenuItems = [
 		{ icon: LayoutDashboard, label: "Dashboard", path: "/admin" },
 		{ icon: Users, label: "Users", path: "/admin/users" },
 		{ icon: TrendingUp, label: "Transactions", path: "/admin/transactions" },
+		{ icon: CreditCard, label: 'Withdrawals', path: '/admin/withdrawals' },
 		{ icon: Wallet, label: "Wallets", path: "/admin/wallets" },
 		{ icon: Settings, label: "Settings", path: "/admin/settings" },
 	];
@@ -109,16 +115,17 @@ function App() {
 					<Route path="btc-wallet" element={<BTCWallet />} />
 					<Route path="eth-wallet" element={<ETHWallet />} />
 					<Route path="usdt-wallet" element={<USDTWallet />} />
+					<Route path="withdraw" element={<WithdrawPage />} />
 					<Route path="trade" element={<WorkerTrade />} />
 					<Route path="transactions" element={<WorkerTransactions />} />
-					<Route
+					{/* <Route
 						path="settings"
 						element={
 							<div className="text-center py-12 text-gray-400">
 								Settings coming soon
 							</div>
 						}
-					/>
+					/> */}
 				</Route>
 
 				{/* Admin Routes */}
@@ -133,6 +140,7 @@ function App() {
 					<Route index element={<AdminDashboard />} />
 					<Route path="users" element={<AdminUsers />} />
 					<Route path="transactions" element={<AdminTransactions />} />
+					<Route path="withdrawals" element={<AdminWithdrawals />} />
 					<Route
 						path="wallets"
 						element={

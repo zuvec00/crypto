@@ -22,7 +22,6 @@ export const useWalletBalances = () => {
       const balancePromises = currencies.map(async (currency) => {
         try {
           const data = await apiService.getWalletBalance(currency);
-          console.log(`💰 ${currency.toUpperCase()} Balance:`, data);
           return {
             currency,
             balance: data?.balance || '0',
@@ -41,7 +40,6 @@ export const useWalletBalances = () => {
       });
 
       const results = await Promise.all(balancePromises);
-      console.log("✅ All Wallet Balances Fetched:", results);
       setBalances(results);
       setError(null);
     } catch (err) {

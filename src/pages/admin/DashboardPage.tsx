@@ -5,7 +5,6 @@ import {
 	DollarSign,
 	Calendar,
 	BarChart3,
-	ArrowUp,
 	Bitcoin,
 	Coins,
 	Loader2,
@@ -17,8 +16,12 @@ import { useTransactionTrend } from "../../hooks/useTransactionTrend";
 import { TransactionTrendChart } from "../../components/TransactionTrendChart";
 import { CryptoDistributionChart } from "../../components/CryptoDistributionChart";
 
+const formatNumber = (value: number, decimals: number = 2): string => {
+	return value.toFixed(decimals);
+};
+
 export default function AdminDashboardPage() {
-	const { stats, loading, error } = useTransactionStats();
+	const { stats, loading } = useTransactionStats();
 	const { volumeData, loading: volumeLoading } = useVolumeTraded();
 	const { users, loading: usersLoading } = useUsers();
 	const { trendData, loading: trendLoading } = useTransactionTrend();
@@ -32,8 +35,8 @@ export default function AdminDashboardPage() {
 		() =>
 			volumeData
 				? (volumeData.btc?.total || 0) +
-				  (volumeData.eth?.total || 0) +
-				  (volumeData.usdt?.total || 0)
+				(volumeData.eth?.total || 0) +
+				(volumeData.usdt?.total || 0)
 				: 0,
 		[volumeData]
 	);
@@ -42,7 +45,7 @@ export default function AdminDashboardPage() {
 		() => (transactions: any[]) => {
 			return (
 				transactions?.reduce(
-					(sum, tx) => sum + parseFloat(tx.total?.amount || "0"),
+					(sum, tx) => sum + parseFloat(tx.naira || "0"),
 					0
 				) || 0
 			);
@@ -112,8 +115,8 @@ export default function AdminDashboardPage() {
 										₦
 										{stats?.dailyTransactions?.length
 											? (
-													dailyVolume / stats.dailyTransactions.length
-											  ).toLocaleString()
+												dailyVolume / stats.dailyTransactions.length
+											).toLocaleString()
 											: "0"}
 									</span>
 								</div>
@@ -124,7 +127,7 @@ export default function AdminDashboardPage() {
 											width: `${Math.min(
 												((stats?.dailyTransactions?.length || 0) /
 													DAILY_TARGET) *
-													100,
+												100,
 												100
 											)}%`,
 										}}
@@ -137,7 +140,7 @@ export default function AdminDashboardPage() {
 											{Math.round(
 												((stats?.dailyTransactions?.length || 0) /
 													DAILY_TARGET) *
-													100
+												100
 											)}
 											% achieved
 										</span>
@@ -193,7 +196,7 @@ export default function AdminDashboardPage() {
 											width: `${Math.min(
 												((stats?.weeklyTransactions?.length || 0) /
 													WEEKLY_TARGET) *
-													100,
+												100,
 												100
 											)}%`,
 										}}
@@ -206,7 +209,7 @@ export default function AdminDashboardPage() {
 											{Math.round(
 												((stats?.weeklyTransactions?.length || 0) /
 													WEEKLY_TARGET) *
-													100
+												100
 											)}
 											% achieved
 										</span>
@@ -262,7 +265,7 @@ export default function AdminDashboardPage() {
 											width: `${Math.min(
 												((stats?.monthlyTransactions?.length || 0) /
 													MONTHLY_TARGET) *
-													100,
+												100,
 												100
 											)}%`,
 										}}
@@ -275,7 +278,7 @@ export default function AdminDashboardPage() {
 											{Math.round(
 												((stats?.monthlyTransactions?.length || 0) /
 													MONTHLY_TARGET) *
-													100
+												100
 											)}
 											% achieved
 										</span>
@@ -304,10 +307,10 @@ export default function AdminDashboardPage() {
 								Bitcoin Volume
 							</p>
 							<p className="text-2xl font-bold text-soft-white">
-								₦{((volumeData?.btc?.total || 0) / 1000000).toFixed(1)}M
+								₦{((volumeData?.btc?.total || 0) / 1000000).toFixed(6)}M
 							</p>
 							<p className="text-xs text-gray-400 mt-1">
-								{(volumeData?.btc?.volume || 0).toFixed(4)} BTC traded
+								{(volumeData?.btc?.volume || 0).toFixed(8)} BTC traded
 							</p>
 						</div>
 					)}
@@ -329,10 +332,10 @@ export default function AdminDashboardPage() {
 								Ethereum Volume
 							</p>
 							<p className="text-2xl font-bold text-soft-white">
-								₦{((volumeData?.eth?.total || 0) / 1000000).toFixed(1)}M
+								₦{((volumeData?.eth?.total || 0) / 1000000).toFixed(6)}M
 							</p>
 							<p className="text-xs text-gray-400 mt-1">
-								{(volumeData?.eth?.volume || 0).toFixed(2)} ETH traded
+								{(volumeData?.eth?.volume || 0).toFixed(6)} ETH traded
 							</p>
 						</div>
 					)}
@@ -352,7 +355,7 @@ export default function AdminDashboardPage() {
 						<div>
 							<p className="text-sm font-medium text-gray-400">USDT Volume</p>
 							<p className="text-2xl font-bold text-soft-white">
-								₦{((volumeData?.usdt?.total || 0) / 1000000).toFixed(1)}M
+								₦{((volumeData?.usdt?.total || 0) / 1000000).toFixed(6)}M
 							</p>
 							<p className="text-xs text-gray-400 mt-1">
 								{(volumeData?.usdt?.volume || 0).toLocaleString()} USDT traded
@@ -386,35 +389,27 @@ export default function AdminDashboardPage() {
 			</div>
 
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-				<div className="bg-dark-gray p-6 rounded-xl border border-medium-gray">
-					<div className="flex items-center justify-between">
-						{volumeLoading ? (
-							<div className="flex items-center justify-center py-4">
-								<Loader2 className="h-6 w-6 animate-spin text-electric-blue" />
-							</div>
-						) : (
-							<div>
-								<p className="text-sm font-medium text-gray-400">
-									Total Volume
-								</p>
-								<p className="text-3xl font-bold text-soft-white">
-									₦{(totalVolume / 1000000).toFixed(1)}M
-								</p>
-								<p className="text-sm text-metallic-gold mt-1">
-									All cryptocurrencies combined
-								</p>
-							</div>
-						)}
-						<div className="h-12 w-12 bg-electric-blue bg-opacity-20 rounded-lg flex items-center justify-center">
-							<TrendingUp className="h-6 w-6 text-electric-blue" />
+				<TransactionTrendChart data={trendData} loading={trendLoading} />
+				<CryptoDistributionChart volumeData={volumeData} loading={volumeLoading} />
+			</div>
+
+			<div className="bg-dark-gray p-6 rounded-xl border border-medium-gray">
+				<div className="flex items-center justify-between">
+					{volumeLoading ? (
+						<div className="flex items-center justify-center py-4">
+							<Loader2 className="h-6 w-6 animate-spin text-electric-blue" />
 						</div>
+					) : (
+						<div>
+							<p className="text-sm font-medium text-gray-400">Total Volume</p>
+							<p className="text-3xl font-bold text-soft-white">₦{formatNumber(totalVolume / 1000000, 6)}M</p>
+							<p className="text-sm text-metallic-gold mt-1">All cryptocurrencies combined</p>
+						</div>
+					)}
+					<div className="h-12 w-12 bg-electric-blue bg-opacity-20 rounded-lg flex items-center justify-center">
+						<TrendingUp className="h-6 w-6 text-electric-blue" />
 					</div>
 				</div>
-
-				<CryptoDistributionChart
-					volumeData={volumeData}
-					loading={volumeLoading}
-				/>
 			</div>
 
 			<div className="bg-dark-gray rounded-xl border border-medium-gray">
@@ -456,7 +451,7 @@ export default function AdminDashboardPage() {
 									</td>
 								</tr>
 							) : (
-								stats?.dailyTransactions?.slice(0, 5).map((tx, index) => (
+								stats?.monthlyTransactions?.slice(0, 10).map((tx, index) => (
 									<tr key={index}>
 										<td className="px-6 py-4 whitespace-nowrap text-sm text-soft-white">
 											{tx.user?.name ||
@@ -464,29 +459,28 @@ export default function AdminDashboardPage() {
 												`User ${tx.id || index + 1}`}
 										</td>
 										<td className="px-6 py-4 whitespace-nowrap text-sm text-soft-white">
-											{tx.market?.base_unit?.toUpperCase()}
+											{tx.coin?.toUpperCase()}
 										</td>
 										<td className="px-6 py-4 whitespace-nowrap text-sm text-soft-white capitalize">
-											{tx.side}
+											{tx.type}
 										</td>
 										<td className="px-6 py-4 whitespace-nowrap text-sm text-soft-white">
-											₦{parseFloat(tx.total?.amount || "0").toLocaleString()}
+											₦{parseFloat(tx.naira || "0").toLocaleString()}
 										</td>
 										<td className="px-6 py-4 whitespace-nowrap">
 											<span
-												className={`px-2 py-1 text-xs font-medium rounded-full capitalize ${
-													tx.state === "done"
-														? "bg-metallic-gold bg-opacity-20 text-metallic-gold"
-														: tx.state === "wait"
+												className={`px-2 py-1 text-xs font-medium rounded-full capitalize ${tx.status === "completed"
+													? "bg-metallic-gold bg-opacity-20 text-metallic-gold"
+													: tx.status === "wait"
 														? "bg-yellow-500 bg-opacity-20 text-yellow-400"
 														: "bg-red-500 bg-opacity-20 text-red-400"
-												}`}
+													}`}
 											>
-												{tx.state === "done" ? "Successful" : tx.state}
+												{tx.status === "completed" ? "Successful" : tx.status}
 											</span>
 										</td>
 										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
-											{new Date(tx.updated_at).toLocaleDateString()}
+											{new Date(tx.date).toLocaleDateString()}
 										</td>
 									</tr>
 								)) || (

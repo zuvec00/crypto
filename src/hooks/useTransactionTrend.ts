@@ -14,7 +14,6 @@ export function useTransactionTrend() {
     const fetchTrendData = async () => {
       try {
         const stats = await apiService.getTransactionStats();
-        console.log(stats);
 
         // Use monthly transactions to create 7-day trend
         const days = 7;
@@ -28,10 +27,16 @@ export function useTransactionTrend() {
           // Count transactions for this date from monthly data
           const count =
             stats.monthlyTransactions?.filter((tx) => {
-              const txDate = new Date(tx.updated_at)
-                .toISOString()
-                .split("T")[0];
-              return txDate === dateStr;
+              try {
+                const txDate = new Date(tx.date);
+                if (isNaN(txDate.getTime())) return false;
+
+                const txDateStr = txDate.toISOString().split("T")[0];
+                return txDateStr === dateStr;
+              } catch (error) {
+                console.warn("Invalid date in transaction:", tx.date);
+                return false;
+              }
             }).length || 0;
 
           data.push({ date: dateStr, count });

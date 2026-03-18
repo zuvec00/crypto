@@ -7,6 +7,22 @@ interface TransactionTrendChartProps {
 }
 
 export function TransactionTrendChart({ data, loading }: TransactionTrendChartProps) {
+  const maxValue = useMemo(() => {
+    if (loading || !data?.length) return 1;
+    return Math.max(...data.map(d => d.count), 1);
+  }, [data, loading]);
+
+  const chartHeight = 200;
+
+  const chartPoints = useMemo(() => {
+    if (loading || !data?.length) return [];
+    return data.map((point, index) => {
+      const x = (index / (data.length - 1)) * 100;
+      const y = chartHeight - (point.count / maxValue) * chartHeight;
+      return { x, y, point, index };
+    });
+  }, [data, maxValue, chartHeight, loading]);
+
   if (loading) {
     return (
       <div className="bg-dark-gray p-6 rounded-xl border border-medium-gray">
@@ -21,24 +37,13 @@ export function TransactionTrendChart({ data, loading }: TransactionTrendChartPr
     );
   }
 
-  const maxValue = useMemo(() => Math.max(...data.map(d => d.count), 1), [data]);
-  const chartHeight = 200;
-  
-  const chartPoints = useMemo(() => {
-    return data.map((point, index) => {
-      const x = (index / (data.length - 1)) * 100;
-      const y = chartHeight - (point.count / maxValue) * chartHeight;
-      return { x, y, point, index };
-    });
-  }, [data, maxValue, chartHeight]);
-
   return (
     <div className="bg-dark-gray p-6 rounded-xl border border-medium-gray">
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-xl font-bold text-soft-white">Transaction Trend</h3>
         <TrendingUp className="h-5 w-5 text-electric-blue" />
       </div>
-      
+
       <div className="relative pl-12" style={{ height: chartHeight + 40 }}>
         {/* Y-axis labels */}
         <div className="absolute left-0 top-0 h-full flex flex-col justify-between text-xs text-gray-400" style={{ height: chartHeight }}>
@@ -48,35 +53,35 @@ export function TransactionTrendChart({ data, loading }: TransactionTrendChartPr
           <span>{Math.round(maxValue * 0.25)}</span>
           <span>0</span>
         </div>
-        
-        <svg width="100%" height={chartHeight + 40} viewBox="0 0 100 240" preserveAspectRatio="xMidYMid meet" className="overflow-visible">
+
+        <svg width="100%" height={chartHeight + 40} viewBox={`0 0 400 ${chartHeight + 40}`} preserveAspectRatio="none" className="overflow-visible">
           {/* Grid lines */}
           {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => (
             <line
               key={i}
               x1="0"
               y1={chartHeight * ratio}
-              x2="100%"
+              x2="400"
               y2={chartHeight * ratio}
               stroke="#374151"
               strokeWidth="1"
               strokeDasharray="2,2"
             />
           ))}
-          
+
           {/* Chart line */}
           <polyline
             fill="none"
             stroke="#3B82F6"
             strokeWidth="2"
-            points={chartPoints.map(({ x, y }) => `${x},${y}`).join(' ')}
+            points={chartPoints.map(({ x, y }) => `${(x / 100) * 400},${y}`).join(' ')}
           />
-          
+
           {/* Data points */}
           {chartPoints.map(({ x, y, point, index }) => (
             <circle
               key={index}
-              cx={x}
+              cx={(x / 100) * 400}
               cy={y}
               r="4"
               fill="#3B82F6"
@@ -85,14 +90,14 @@ export function TransactionTrendChart({ data, loading }: TransactionTrendChartPr
               <title>{`${point.date}: ${point.count} transactions`}</title>
             </circle>
           ))}
-          
+
           {/* X-axis labels */}
           {chartPoints.map(({ x, point, index }) => {
             if (index % Math.ceil(data.length / 5) === 0) {
               return (
                 <text
                   key={index}
-                  x={x}
+                  x={(x / 100) * 400}
                   y={chartHeight + 20}
                   textAnchor="middle"
                   className="fill-gray-400 text-xs"

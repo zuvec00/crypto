@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { apiService } from '../services/api';
+import { useState, useEffect } from "react";
+import { apiService } from "../services/api";
 
 interface TransactionStats {
   dailyTransactions: any[];
@@ -16,20 +16,14 @@ export const useTransactionStats = () => {
     try {
       setLoading(true);
       const data = await apiService.getTransactionStats();
-      
-      // Log the transaction stats response structure
-      console.log("📈 /trade/stats Response:", {
-        data,
-        dailyCount: data?.dailyTransactions?.length || 0,
-        weeklyCount: data?.weeklyTransactions?.length || 0,
-        monthlyCount: data?.monthlyTransactions?.length || 0,
-        sampleDailyTx: data?.dailyTransactions?.[0],
-      });
-      
       setStats(data);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch transaction stats');
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to fetch transaction stats",
+      );
     } finally {
       setLoading(false);
     }

@@ -117,7 +117,7 @@ export default function BTCWalletPage() {
               Send BTC
             </button>
             <button
-              onClick={() => navigate('/worker/trade')}
+              onClick={() => navigate('/worker/trade?currency=btc')}
               className="flex items-center justify-center p-4 bg-electric-blue text-soft-white rounded-lg hover:bg-blue-hover transition-all"
             >
               <ArrowUpDown className="h-5 w-5 mr-2" />
@@ -129,7 +129,21 @@ export default function BTCWalletPage() {
 
       <div className="bg-dark-gray rounded-xl border border-medium-gray">
         <div className="p-6 border-b border-medium-gray">
-          <h3 className="text-lg font-semibold text-soft-white">Bitcoin Transaction History</h3>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+            <h3 className="text-lg font-semibold text-soft-white">Bitcoin Transaction History</h3>
+            <div className="flex space-x-2">
+              <button
+                onClick={() => {
+                  // Add refetch logic here if needed
+                }}
+                disabled={transactionsLoading}
+                className="bg-medium-gray text-soft-white px-4 py-2 rounded-lg hover:bg-light-gray transition-all flex items-center space-x-2 disabled:opacity-50"
+              >
+                <RefreshCw className={`h-4 w-4 ${transactionsLoading ? "animate-spin" : ""}`} />
+                <span>Refresh</span>
+              </button>
+            </div>
+          </div>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full min-h-[350px]">

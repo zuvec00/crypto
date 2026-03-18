@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown, DollarSign, Bitcoin, Coins, Wallet, ArrowUpDown, Activity, Loader2, Eye, EyeOff } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, Bitcoin, Coins, Wallet, ArrowUpDown, Activity, Loader2, Eye, EyeOff, Send } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { useNavigate } from 'react-router-dom';
 import { useBTCWallet } from '../../hooks/useBTCWallet';
@@ -62,7 +62,7 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-dark-gray p-6 rounded-xl border border-medium-gray">
-          <div className="flex items-center justify-between">
+          <div className="flex items-start justify-between">
             <div>
               <p className="text-sm font-medium text-gray-400">NGN Balance</p>
               {ngnLoading ? (
@@ -140,8 +140,8 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <button 
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <button
           onClick={() => navigate('/worker/trade')}
           className="bg-metallic-gold text-primary-black p-6 rounded-xl hover:bg-gold-hover transition-all text-left group"
         >
@@ -150,7 +150,7 @@ export default function DashboardPage() {
           <p className="text-primary-black text-opacity-80 text-sm">Purchase with NGN</p>
         </button>
 
-        <button 
+        <button
           onClick={() => navigate('/worker/trade')}
           className="bg-electric-blue text-soft-white p-6 rounded-xl hover:bg-blue-hover transition-all text-left group"
         >
@@ -159,7 +159,16 @@ export default function DashboardPage() {
           <p className="text-soft-white text-opacity-80 text-sm">Convert to NGN</p>
         </button>
 
-        <button 
+        <button
+          onClick={() => navigate('/worker/withdraw')}
+          className="bg-green-600 text-soft-white p-6 rounded-xl hover:bg-green-700 transition-all text-left group"
+        >
+          <Send className="h-6 w-6 mb-3 group-hover:scale-110 transition-transform" />
+          <h3 className="text-lg font-semibold mb-2">Withdraw</h3>
+          <p className="text-soft-white text-opacity-80 text-sm">To bank account</p>
+        </button>
+
+        <button
           onClick={() => navigate('/worker/wallets')}
           className="bg-dark-gray border border-medium-gray text-soft-white p-6 rounded-xl hover:border-metallic-gold hover:bg-metallic-gold hover:bg-opacity-10 transition-all text-left group"
         >

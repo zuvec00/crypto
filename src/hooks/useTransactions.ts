@@ -26,14 +26,6 @@ export const useTransactions = () => {
 
       const data = await response.json();
 
-      // Log the /trade endpoint response structure
-      console.log("💰 /trade Endpoint Response:", {
-        data,
-        count: data?.length || 0,
-        firstTransaction: data?.[0],
-        transactionFields: data?.[0] ? Object.keys(data[0]) : [],
-      });
-
       setTransactions(data);
       setError(null);
     } catch (err) {
@@ -87,7 +79,6 @@ export const useTransactions = () => {
   }, []);
 
   const refetchAll = async () => {
-    console.log("🔄 Refetching all transactions...");
     await fetchTransactions();
     await fetchDailyTransactions();
   };

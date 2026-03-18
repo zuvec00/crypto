@@ -168,7 +168,7 @@ export default function USDTWalletPage() {
 									Send USDT
 								</button>
 								<button
-									onClick={() => navigate("/worker/trade")}
+									onClick={() => navigate("/worker/trade?currency=usdt")}
 									className="flex items-center justify-center p-4 bg-electric-blue text-soft-white rounded-lg hover:bg-blue-hover transition-all"
 								>
 									<ArrowUpDown className="h-5 w-5 mr-2" />

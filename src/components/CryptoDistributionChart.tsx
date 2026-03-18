@@ -11,6 +11,34 @@ interface CryptoDistributionChartProps {
 }
 
 export function CryptoDistributionChart({ volumeData, loading }: CryptoDistributionChartProps) {
+  const { btcTotal, ethTotal, usdtTotal, total, btcPercent, ethPercent, usdtPercent } = useMemo(() => {
+    if (loading) {
+      return {
+        btcTotal: 0,
+        ethTotal: 0,
+        usdtTotal: 0,
+        total: 0,
+        btcPercent: 0,
+        ethPercent: 0,
+        usdtPercent: 0
+      };
+    }
+    const btc = volumeData?.btc?.total || 0;
+    const eth = volumeData?.eth?.total || 0;
+    const usdt = volumeData?.usdt?.total || 0;
+    const totalVol = btc + eth + usdt;
+
+    return {
+      btcTotal: btc,
+      ethTotal: eth,
+      usdtTotal: usdt,
+      total: totalVol,
+      btcPercent: totalVol > 0 ? (btc / totalVol) * 100 : 0,
+      ethPercent: totalVol > 0 ? (eth / totalVol) * 100 : 0,
+      usdtPercent: totalVol > 0 ? (usdt / totalVol) * 100 : 0
+    };
+  }, [volumeData, loading]);
+
   if (loading) {
     return (
       <div className="bg-dark-gray p-6 rounded-xl border border-medium-gray">
@@ -25,23 +53,6 @@ export function CryptoDistributionChart({ volumeData, loading }: CryptoDistribut
     );
   }
 
-  const { btcTotal, ethTotal, usdtTotal, total, btcPercent, ethPercent, usdtPercent } = useMemo(() => {
-    const btc = volumeData?.btc?.total || 0;
-    const eth = volumeData?.eth?.total || 0;
-    const usdt = volumeData?.usdt?.total || 0;
-    const totalVol = btc + eth + usdt;
-    
-    return {
-      btcTotal: btc,
-      ethTotal: eth,
-      usdtTotal: usdt,
-      total: totalVol,
-      btcPercent: totalVol > 0 ? (btc / totalVol) * 100 : 0,
-      ethPercent: totalVol > 0 ? (eth / totalVol) * 100 : 0,
-      usdtPercent: totalVol > 0 ? (usdt / totalVol) * 100 : 0
-    };
-  }, [volumeData]);
-
   const radius = 80;
   const centerX = 120;
   const centerY = 120;
@@ -51,16 +62,16 @@ export function CryptoDistributionChart({ volumeData, loading }: CryptoDistribut
   const createArc = (percent: number, color: string) => {
     const startAngle = (cumulativePercent / 100) * 2 * Math.PI - Math.PI / 2;
     const endAngle = ((cumulativePercent + percent) / 100) * 2 * Math.PI - Math.PI / 2;
-    
+
     const x1 = centerX + radius * Math.cos(startAngle);
     const y1 = centerY + radius * Math.sin(startAngle);
     const x2 = centerX + radius * Math.cos(endAngle);
     const y2 = centerY + radius * Math.sin(endAngle);
-    
+
     const largeArc = percent > 50 ? 1 : 0;
-    
+
     cumulativePercent += percent;
-    
+
     return `M ${centerX} ${centerY} L ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2} Z`;
   };
 
@@ -70,7 +81,7 @@ export function CryptoDistributionChart({ volumeData, loading }: CryptoDistribut
         <h3 className="text-xl font-bold text-soft-white">Crypto Distribution</h3>
         <PieChart className="h-5 w-5 text-electric-blue" />
       </div>
-      
+
       <div className="flex items-center justify-between">
         <svg width="240" height="240" className="flex-shrink-0">
           {btcPercent > 0 && (
@@ -83,7 +94,7 @@ export function CryptoDistributionChart({ volumeData, loading }: CryptoDistribut
             <path d={createArc(usdtPercent, '#10B981')} fill="#10B981" opacity="0.8" />
           )}
         </svg>
-        
+
         <div className="space-y-4 ml-6">
           <div className="flex items-center space-x-3">
             <div className="flex items-center space-x-2">
@@ -92,10 +103,10 @@ export function CryptoDistributionChart({ volumeData, loading }: CryptoDistribut
             </div>
             <div>
               <p className="text-sm font-medium text-soft-white">Bitcoin</p>
-              <p className="text-xs text-gray-400">{btcPercent.toFixed(1)}% • ₦{(btcTotal / 1000000).toFixed(1)}M</p>
+              <p className="text-xs text-gray-400">{btcPercent.toFixed(1)}% • ₦{(btcTotal / 1000000).toFixed(6)}M</p>
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-3">
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 bg-electric-blue rounded-full"></div>
@@ -103,10 +114,10 @@ export function CryptoDistributionChart({ volumeData, loading }: CryptoDistribut
             </div>
             <div>
               <p className="text-sm font-medium text-soft-white">Ethereum</p>
-              <p className="text-xs text-gray-400">{ethPercent.toFixed(1)}% • ₦{(ethTotal / 1000000).toFixed(1)}M</p>
+              <p className="text-xs text-gray-400">{ethPercent.toFixed(1)}% • ₦{(ethTotal / 1000000).toFixed(6)}M</p>
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-3">
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 bg-green-400 rounded-full"></div>
@@ -114,7 +125,7 @@ export function CryptoDistributionChart({ volumeData, loading }: CryptoDistribut
             </div>
             <div>
               <p className="text-sm font-medium text-soft-white">USDT</p>
-              <p className="text-xs text-gray-400">{usdtPercent.toFixed(1)}% • ₦{(usdtTotal / 1000000).toFixed(1)}M</p>
+              <p className="text-xs text-gray-400">{usdtPercent.toFixed(1)}% • ₦{(usdtTotal / 1000000).toFixed(6)}M</p>
             </div>
           </div>
         </div>

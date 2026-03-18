@@ -21,7 +21,6 @@ export const useWebSocket = () => {
 
     // Listen for withdrawal success notifications
     socketRef.current.on("withdraw.success", (data) => {
-      console.log("Withdrawal completed:", data);
 
       // You can tweak this part to show the notification somehow
       if ("Notification" in window && Notification.permission === "granted") {

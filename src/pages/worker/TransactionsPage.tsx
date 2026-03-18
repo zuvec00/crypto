@@ -8,17 +8,6 @@ export default function TransactionsPage() {
 	const [typeFilter, setTypeFilter] = useState("all");
 	const [coinFilter, setCoinFilter] = useState("all");
 
-	// Debug logging
-	console.log("📜 Transactions Page Data:", {
-		dailyTransaction,
-		dailyCount: dailyTransaction?.length || 0,
-		allTransactions: trasactions,
-		allCount: trasactions?.length || 0,
-		firstDaily: dailyTransaction?.[0],
-		firstAll: trasactions?.[0],
-		loading,
-		error,
-	});
 
 	const filteredTransactions = useMemo(() => {
 		// Use all transactions instead of just daily
@@ -34,9 +23,6 @@ export default function TransactionsPage() {
 			return typeMatch && coinMatch;
 		});
 
-		console.log("the filtered data")
-		console.log(filtered)
-
 
 		return filtered;
 	}, [trasactions, dailyTransaction, typeFilter, coinFilter]);
@@ -49,7 +35,6 @@ export default function TransactionsPage() {
 			"Type",
 			"Coin",
 			"Amount",
-			"Total (NGN)",
 			"Status",
 			"Date",
 		];
@@ -142,7 +127,6 @@ export default function TransactionsPage() {
 						<div className="flex space-x-2">
 							<button
 								onClick={() => {
-									console.log("🔄 Manually refreshing transactions...");
 									refetch();
 								}}
 								disabled={loading}
@@ -165,22 +149,22 @@ export default function TransactionsPage() {
 					</div>
 				</div>
 				<div className="overflow-x-auto">
-					<table className="w-full min-h-[350px]">
+					<table className="w-full">
 						<thead className="bg-medium-gray">
 							<tr>
-								<th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+								<th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider w-1/3">
 									Transaction
 								</th>
-								<th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+								<th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider w-1/6">
+									Total (NGN)
+								</th>
+								<th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider w-1/6">
 									Amount
 								</th>
-								<th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-									Crypto Amount
-								</th>
-								<th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+								<th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider w-1/6">
 									Status
 								</th>
-								<th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+								<th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider w-1/6">
 									Date
 								</th>
 							</tr>
@@ -217,16 +201,16 @@ export default function TransactionsPage() {
 								</tr>
 							) : (
 								filteredTransactions.map((tx) => (
-									<tr key={tx.id}>
-										<td className="px-6 py-4 whitespace-nowrap">
-											<div className="flex items-center">
+									<tr key={tx.id} className="align-top">
+										<td className="px-6 py-4 align-top">
+											<div className="flex items-start">
 												<div
 													className={`h-8 w-8 rounded-full flex items-center justify-center mr-3 ${tx.side === "buy"
 														? "bg-metallic-gold bg-opacity-20"
 														: "bg-red-500 bg-opacity-20"
 														}`}
 												>
-													{tx.side === "buy" ? (
+													{(tx.type || tx.side) === "buy" ? (
 														<TrendingUp className="h-4 w-4 text-metallic-gold" />
 													) : (
 														<TrendingDown className="h-4 w-4 text-red-400" />
@@ -234,15 +218,15 @@ export default function TransactionsPage() {
 												</div>
 												<div>
 													<p className="font-medium text-soft-white capitalize">
-														{tx.side} {tx.market?.base_unit?.toUpperCase()}
+														{(tx.type || tx.side)} {(tx.coin || tx.market?.base_unit)?.toUpperCase()}
 													</p>
 													<p className="text-sm text-gray-400">
-														#{tx.id?.toString().slice(0, 8)}
+														#{(tx.quidaxOrderId || tx.id)?.toString().slice(0, 8)}
 													</p>
 												</div>
 											</div>
 										</td>
-										<td className="px-6 py-4 whitespace-nowrap text-sm text-soft-white">
+										<td className="px-6 py-4 align-top text-sm text-soft-white">
 											{formatCurrency(
 												parseFloat(tx.naira || tx.total || "0")
 											)}
@@ -251,18 +235,18 @@ export default function TransactionsPage() {
 											{tx.amount || tx.volume}{" "}
 											{tx.coin?.toUpperCase()}
 										</td>
-										<td className="px-6 py-4 whitespace-nowrap">
+										<td className="px-6 py-4 align-top">
 											<span
-												className={`px-2 py-1 text-xs font-medium rounded-full ${tx.status === "done"
+												className={`px-2 py-1 text-xs font-medium rounded-full ${(tx.status === "completed" || tx.state === "done")
 													? "bg-green-500 bg-opacity-20 text-green-400"
-													: tx.status === "wait"
+													: (tx.status === "pending" || tx.state === "wait")
 														? "bg-yellow-500 bg-opacity-20 text-yellow-400"
 														: tx.status === "completed"
 															? "bg-blue-500 bg-opacity-20 text-blue-400"
 															: "bg-red-500 bg-opacity-20 text-red-400"
 													}`}
 											>
-												{tx.status === "done"
+												{(tx.status === "completed" || tx.state === "done")
 													? "COMPLETED"
 													: tx.status.toUpperCase()}
 											</span>

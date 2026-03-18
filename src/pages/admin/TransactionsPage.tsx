@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo } from "react";
 import {
 	TrendingUp,
 	TrendingDown,
@@ -9,108 +9,50 @@ import {
 } from "lucide-react";
 import { useAllTransactions } from "../../hooks/useAllTransactions";
 
-interface Transaction {
-	id: string | number;
-	side: string;
-	market?: {
-		base_unit?: string;
-	};
-	volume?:
-		| {
-				amount?: string;
-		  }
-		| string;
-	total?:
-		| {
-				amount?: string;
-		  }
-		| string;
-	state: string;
-	user?: {
-		name?: string;
-		email?: string;
-	};
-	created_at?: string;
-	updated_at: string;
-}
-
 export default function AdminTransactionsPage() {
-	const { transactions, loading, error, refetch } = useAllTransactions();
-	const trasactions = transactions as Transaction[];
+	const { allTransactions, loading, error, refetch } = useAllTransactions();
 	const [typeFilter, setTypeFilter] = useState("all");
 	const [coinFilter, setCoinFilter] = useState("all");
 	const [statusFilter, setStatusFilter] = useState("all");
 
-	// Helper functions to handle volume and total which can be string or object
-	const getAmount = useCallback(
-		(value?: { amount?: string } | string): string => {
-			if (typeof value === "string") return value;
-			return value?.amount || "0";
-		},
-		[]
-	);
-
-	// Log the transactions data to see the structure
-	console.log("📊 Admin Transactions Data:", {
-		trasactions,
-		count: trasactions?.length || 0,
-		firstTransaction: trasactions?.[0],
-		loading,
-		error,
-	});
-
 	const filteredTransactions = useMemo(() => {
-		if (!trasactions) return [];
+		if (!allTransactions) return [];
 
-		return trasactions.filter((tx) => {
-			const typeMatch = typeFilter === "all" || tx.side === typeFilter;
-			const coinMatch =
-				coinFilter === "all" ||
-				tx.market?.base_unit === coinFilter.toLowerCase();
-			const statusMatch = statusFilter === "all" || tx.state === statusFilter;
+		return allTransactions.filter((tx) => {
+			const typeMatch = typeFilter === "all" || tx.type === typeFilter;
+			const coinMatch = coinFilter === "all" || tx.coin === coinFilter.toLowerCase();
+			const statusMatch = statusFilter === "all" || tx.status === statusFilter;
 			return typeMatch && coinMatch && statusMatch;
 		});
-	}, [trasactions, typeFilter, coinFilter, statusFilter]);
+	}, [allTransactions, typeFilter, coinFilter, statusFilter]);
 
 	const statistics = useMemo(() => {
-		if (!trasactions) return { total: 0, completed: 0, pending: 0, volume: 0 };
+		if (!allTransactions) return { total: 0, completed: 0, pending: 0, volume: 0 };
 
 		return {
-			total: trasactions.length,
-			completed: trasactions.filter((tx) => tx.state === "done").length,
-			pending: trasactions.filter((tx) => tx.state === "wait").length,
-			volume: trasactions.reduce(
-				(sum, tx) => sum + parseFloat(getAmount(tx.total)),
-				0
-			),
+			total: allTransactions.length,
+			completed: allTransactions.filter((tx) => tx.status === "completed").length,
+			failed: allTransactions.filter((tx) => tx.status === "failed").length,
+			volume: allTransactions.filter((tx) => tx.status === "completed").reduce((sum, tx) => sum + (parseFloat(tx.naira) || 0), 0),
 		};
-	}, [trasactions, getAmount]);
+	}, [allTransactions]);
 
 	const exportToCSV = () => {
 		if (!filteredTransactions.length) return;
 
-		const headers = [
-			"ID",
-			"User",
-			"Type",
-			"Coin",
-			"Amount",
-			"Total (NGN)",
-			"Status",
-			"Date",
-		];
+		const headers = ["ID", "User", "Type", "Coin", "Amount", "Total (NGN)", "Status", "Date"];
 		const csvContent = [
 			headers.join(","),
 			...filteredTransactions.map((tx) =>
 				[
 					tx.id,
-					tx.user?.email || "N/A",
-					tx.side.toUpperCase(),
-					tx.market?.base_unit?.toUpperCase() || "",
-					getAmount(tx.volume),
-					getAmount(tx.total),
-					tx.state.toUpperCase(),
-					new Date(tx.updated_at).toLocaleString(),
+					tx.wallet?.user?.email || "N/A",
+					tx.type?.toUpperCase() || "",
+					tx.coin?.toUpperCase() || "",
+					tx.amount || "0",
+					tx.naira || "0",
+					tx.status?.toUpperCase() || "",
+					new Date(tx.date).toLocaleString(),
 				].join(",")
 			),
 		].join("\n");
@@ -119,9 +61,7 @@ export default function AdminTransactionsPage() {
 		const url = window.URL.createObjectURL(blob);
 		const a = document.createElement("a");
 		a.href = url;
-		a.download = `admin-transactions-${
-			new Date().toISOString().split("T")[0]
-		}.csv`;
+		a.download = `admin-transactions-${new Date().toISOString().split("T")[0]}.csv`;
 		a.click();
 		window.URL.revokeObjectURL(url);
 	};
@@ -188,13 +128,13 @@ export default function AdminTransactionsPage() {
 				<div className="bg-dark-gray p-6 rounded-xl border border-medium-gray">
 					<div className="flex items-center justify-between">
 						<div>
-							<p className="text-sm text-gray-400 mb-1">Pending</p>
-							<p className="text-2xl font-bold text-yellow-400">
-								{statistics.pending}
+							<p className="text-sm text-gray-400 mb-1">Failed</p>
+							<p className="text-2xl font-bold text-red-400">
+								{statistics.failed}
 							</p>
 						</div>
-						<div className="h-12 w-12 bg-yellow-500 bg-opacity-20 rounded-full flex items-center justify-center">
-							<RefreshCw className="h-6 w-6 text-yellow-400" />
+						<div className="h-12 w-12 bg-red-500 bg-opacity-20 rounded-full flex items-center justify-center">
+							<RefreshCw className="h-6 w-6 text-red-400" />
 						</div>
 					</div>
 				</div>
@@ -252,9 +192,9 @@ export default function AdminTransactionsPage() {
 								className="px-3 py-2 bg-medium-gray border border-light-gray rounded-lg focus:ring-2 focus:ring-metallic-gold focus:border-transparent text-soft-white text-sm"
 							>
 								<option value="all">All Status</option>
-								<option value="done">Completed</option>
-								<option value="wait">Pending</option>
-								<option value="cancel">Cancelled</option>
+								<option value="completed">Completed</option>
+								<option value="pending">Pending</option>
+								<option value="failed">Failed</option>
 							</select>
 
 							<button
@@ -348,10 +288,10 @@ export default function AdminTransactionsPage() {
 												</div>
 												<div>
 													<p className="text-sm font-medium text-soft-white">
-														{tx.user?.name || "User"}
+														{tx.wallet?.user?.name || "User"}
 													</p>
 													<p className="text-xs text-gray-400">
-														{tx.user?.email || "N/A"}
+														{tx.wallet?.user?.email || "N/A"}
 													</p>
 												</div>
 											</div>
@@ -359,13 +299,12 @@ export default function AdminTransactionsPage() {
 										<td className="px-6 py-4 whitespace-nowrap">
 											<div className="flex items-center">
 												<div
-													className={`h-8 w-8 rounded-full flex items-center justify-center mr-3 ${
-														tx.side === "buy"
-															? "bg-metallic-gold bg-opacity-20"
-															: "bg-red-500 bg-opacity-20"
-													}`}
+													className={`h-8 w-8 rounded-full flex items-center justify-center mr-3 ${tx.type === "buy"
+														? "bg-metallic-gold bg-opacity-20"
+														: "bg-red-500 bg-opacity-20"
+														}`}
 												>
-													{tx.side === "buy" ? (
+													{tx.type === "buy" ? (
 														<TrendingUp className="h-4 w-4 text-metallic-gold" />
 													) : (
 														<TrendingDown className="h-4 w-4 text-red-400" />
@@ -373,38 +312,34 @@ export default function AdminTransactionsPage() {
 												</div>
 												<div>
 													<p className="font-medium text-soft-white capitalize">
-														{tx.side} {tx.market?.base_unit?.toUpperCase()}
+														{tx.type} {tx.coin?.toUpperCase()}
 													</p>
 													<p className="text-xs text-gray-400">
-														#{tx.id.toString().slice(0, 8)}
+														#{tx.id?.toString().slice(0, 8)}
 													</p>
 												</div>
 											</div>
 										</td>
 										<td className="px-6 py-4 whitespace-nowrap text-sm text-soft-white">
-											{getAmount(tx.volume)}{" "}
-											{tx.market?.base_unit?.toUpperCase()}
+											{tx.amount} {tx.coin?.toUpperCase()}
 										</td>
 										<td className="px-6 py-4 whitespace-nowrap text-sm text-soft-white font-medium">
-											{formatCurrency(parseFloat(getAmount(tx.total)))}
+											{formatCurrency(tx.naira || 0)}
 										</td>
 										<td className="px-6 py-4 whitespace-nowrap">
 											<span
-												className={`px-3 py-1 text-xs font-medium rounded-full capitalize ${
-													tx.state === "done"
-														? "bg-green-500 bg-opacity-20 text-green-400"
-														: tx.state === "wait"
+												className={`px-3 py-1 text-xs font-medium rounded-full capitalize ${tx.status === "completed"
+													? "bg-green-500 bg-opacity-20 text-green-400"
+													: tx.status === "pending"
 														? "bg-yellow-500 bg-opacity-20 text-yellow-400"
-														: tx.state === "confirm"
-														? "bg-blue-500 bg-opacity-20 text-blue-400"
 														: "bg-red-500 bg-opacity-20 text-red-400"
-												}`}
+													}`}
 											>
-												{tx.state === "done" ? "Completed" : tx.state}
+												{tx.status}
 											</span>
 										</td>
 										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
-											{formatDate(tx.updated_at)}
+											{formatDate(tx.date)}
 										</td>
 									</tr>
 								))
@@ -417,7 +352,7 @@ export default function AdminTransactionsPage() {
 					<div className="px-6 py-4 border-t border-medium-gray">
 						<p className="text-sm text-gray-400">
 							Showing {filteredTransactions.length} of{" "}
-							{trasactions?.length || 0} transactions
+							{allTransactions?.length || 0} transactions
 						</p>
 					</div>
 				)}

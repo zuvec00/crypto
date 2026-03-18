@@ -46,29 +46,9 @@ export const useBalance = () => {
 
       const data = await response.json();
       
-      // Log the balance data to see the structure
-      console.log("💼💼💼 /wallet/balance API Response (DETAILED):", {
-        rawData: data,
-        dataType: Array.isArray(data) ? 'Array' : typeof data,
-        count: data?.length || 0,
-        allBalances: data,
-        usdtBalance: Array.isArray(data) ? data.find(b => b.currency === 'usdt') : null,
-        firstBalance: data?.[0],
-        balanceFields: data?.[0] ? Object.keys(data[0]) : [],
-        allFieldsAndValues: data?.[0] ? Object.entries(data[0]) : [],
-      });
 
       // Extra logging for USDT specifically
       const usdtData = Array.isArray(data) ? data.find(b => b.currency === 'usdt') : null;
-      if (usdtData) {
-        console.log("🔍 USDT Balance Detail:", {
-          fullObject: usdtData,
-          allFieldsWithValues: Object.entries(usdtData),
-          balanceField: usdtData.balance,
-          lockedField: usdtData.locked,
-          lockedBalanceField: usdtData.lockedBalance,
-        });
-      }
       
       setBalance(data);
       setError(null);

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from 'react';
 import {
 	LayoutDashboard,
 	Wallet,
@@ -16,13 +16,14 @@ import {
 	Menu,
 	X,
 	CheckCircle,
-	AlertCircle,
 	DollarSign,
 	Bitcoin,
 	Coins,
 	Network,
-} from "lucide-react";
-import type { User } from "../App";
+	Send
+} from 'lucide-react';
+import type { User } from '../App';
+import WithdrawPage from '../pages/WithdrawPage';
 
 interface WorkerDashboardProps {
 	user: User;
@@ -30,17 +31,18 @@ interface WorkerDashboardProps {
 }
 
 const menuItems = [
-	{ icon: LayoutDashboard, label: "Dashboard", id: "dashboard" },
-	{ icon: Wallet, label: "All Wallets", id: "wallets" },
-	{ icon: DollarSign, label: "NGN Wallet", id: "ngn-wallet" },
-	{ icon: Bitcoin, label: "Bitcoin Wallet", id: "btc-wallet" },
-	{ icon: Coins, label: "Ethereum Wallet", id: "eth-wallet" },
-	{ icon: Network, label: "USDT TRC-20", id: "usdt-trc20" },
-	{ icon: Network, label: "USDT ERC-20", id: "usdt-erc20" },
-	{ icon: Network, label: "USDT BEP-20", id: "usdt-bep20" },
-	{ icon: ArrowUpDown, label: "Buy/Sell", id: "trade" },
-	{ icon: History, label: "Transactions", id: "transactions" },
-	{ icon: Settings, label: "Settings", id: "settings" },
+	{ icon: LayoutDashboard, label: 'Dashboard', id: 'dashboard' },
+	{ icon: Wallet, label: 'All Wallets', id: 'wallets' },
+	{ icon: DollarSign, label: 'NGN Wallet', id: 'ngn-wallet' },
+	{ icon: Bitcoin, label: 'Bitcoin Wallet', id: 'btc-wallet' },
+	{ icon: Coins, label: 'Ethereum Wallet', id: 'eth-wallet' },
+	{ icon: Network, label: 'USDT TRC-20', id: 'usdt-trc20' },
+	{ icon: Network, label: 'USDT ERC-20', id: 'usdt-erc20' },
+	{ icon: Network, label: 'USDT BEP-20', id: 'usdt-bep20' },
+	{ icon: ArrowUpDown, label: 'Buy/Sell', id: 'trade' },
+	{ icon: Send, label: 'Withdraw to Bank', id: 'withdraw' },
+	{ icon: History, label: 'Transactions', id: 'transactions' },
+	{ icon: Settings, label: 'Settings', id: 'settings' },
 ];
 
 const mockTransactions = [
@@ -82,15 +84,17 @@ const mockTransactions = [
 	},
 ];
 
-export default function WorkerDashboard({
-	user,
-	onLogout,
-}: WorkerDashboardProps) {
-	const [activeView, setActiveView] = useState("dashboard");
+export default function WorkerDashboard({ user, onLogout }: WorkerDashboardProps) {
+	const [activeView, setActiveView] = useState('dashboard');
 	const [sidebarOpen, setSidebarOpen] = useState(false);
-	const [selectedCoin, setSelectedCoin] = useState("BTC");
-	const [amount, setAmount] = useState("");
-	const [tradeType, setTradeType] = useState<"buy" | "sell">("buy");
+	const [selectedCoin, setSelectedCoin] = useState('BTC');
+	const [amount, setAmount] = useState('');
+	const [tradeType, setTradeType] = useState<'buy' | 'sell'>('buy');
+	const [showWithdrawPage, setShowWithdrawPage] = useState(false);
+
+	if (showWithdrawPage) {
+		return <WithdrawPage user={user} onBack={() => setShowWithdrawPage(false)} />;
+	}
 
 	const cryptoRates = {
 		BTC: 20000000, // 20M NGN per BTC
@@ -110,15 +114,10 @@ export default function WorkerDashboard({
 			)}
 
 			{/* Sidebar */}
-			<div
-				className={`fixed inset-y-0 left-0 z-50 w-64 bg-dark-gray border-r border-medium-gray transform ${
-					sidebarOpen ? "translate-x-0" : "-translate-x-full"
-				} transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static lg:inset-0`}
-			>
+			<div className={`fixed inset-y-0 left-0 z-50 w-64 bg-dark-gray border-r border-medium-gray transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+				} transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static lg:inset-0`}>
 				<div className="flex items-center justify-between h-16 px-6 border-b border-medium-gray">
-					<h1 className="text-xl font-bold text-metallic-gold">
-						Corbit Global
-					</h1>
+					<h1 className="text-xl font-bold text-metallic-gold">CryptoChoice Bank</h1>
 					<button
 						onClick={() => setSidebarOpen(false)}
 						className="lg:hidden p-2 rounded-md text-gray-400 hover:text-gray-300"
@@ -134,14 +133,17 @@ export default function WorkerDashboard({
 							<button
 								key={item.id}
 								onClick={() => {
-									setActiveView(item.id);
+									if (item.id === 'withdraw') {
+										setShowWithdrawPage(true);
+									} else {
+										setActiveView(item.id);
+									}
 									setSidebarOpen(false);
 								}}
-								className={`w-full flex items-center px-4 py-3 text-left rounded-lg transition-colors ${
-									activeView === item.id
-										? "bg-metallic-gold bg-opacity-20 text-metallic-gold border-r-2 border-metallic-gold"
-										: "text-gray-400 hover:bg-medium-gray"
-								}`}
+								className={`w-full flex items-center px-4 py-3 text-left rounded-lg transition-colors ${activeView === item.id
+									? 'bg-metallic-gold bg-opacity-20 text-metallic-gold border-r-2 border-metallic-gold'
+									: 'text-gray-400 hover:bg-medium-gray'
+									}`}
 							>
 								<Icon className="h-5 w-5 mr-3" />
 								{item.label}
@@ -188,9 +190,7 @@ export default function WorkerDashboard({
 				<div className="flex items-center space-x-4">
 					<div className="flex items-center space-x-2 px-3 py-1 bg-electric-blue bg-opacity-20 rounded-full">
 						<CheckCircle className="h-4 w-4 text-electric-blue" />
-						<span className="text-sm font-medium text-electric-blue">
-							API Connected
-						</span>
+						<span className="text-sm font-medium text-electric-blue">API Connected</span>
 					</div>
 
 					<button className="p-2 text-gray-400 hover:text-gray-300 relative">
@@ -285,103 +285,72 @@ export default function WorkerDashboard({
 
 			<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 				<button
-					onClick={() => {
-						setActiveView("trade");
-						setTradeType("buy");
-					}}
+					onClick={() => { setActiveView('trade'); setTradeType('buy'); }}
 					className="bg-metallic-gold text-primary-black p-8 rounded-xl hover:bg-gold-hover transition-all text-left group"
 				>
 					<TrendingUp className="h-8 w-8 mb-4 group-hover:scale-110 transition-transform" />
 					<h3 className="text-xl font-semibold mb-2">Buy Cryptocurrency</h3>
-					<p className="text-primary-black text-opacity-80">
-						Purchase crypto with your NGN balance
-					</p>
+					<p className="text-primary-black text-opacity-80">Purchase crypto with your NGN balance</p>
 				</button>
 
 				<button
-					onClick={() => {
-						setActiveView("trade");
-						setTradeType("sell");
-					}}
+					onClick={() => { setActiveView('trade'); setTradeType('sell'); }}
 					className="bg-electric-blue text-soft-white p-8 rounded-xl hover:bg-blue-hover transition-all text-left group"
 				>
 					<TrendingDown className="h-8 w-8 mb-4 group-hover:scale-110 transition-transform" />
 					<h3 className="text-xl font-semibold mb-2">Sell Cryptocurrency</h3>
-					<p className="text-soft-white text-opacity-80">
-						Convert your crypto to NGN
-					</p>
+					<p className="text-soft-white text-opacity-80">Convert your crypto to NGN</p>
 				</button>
 			</div>
 
 			<div className="bg-dark-gray rounded-xl border border-medium-gray">
 				<div className="p-6 border-b border-medium-gray">
-					<h3 className="text-lg font-semibold text-soft-white">
-						Recent Transactions
-					</h3>
+					<h3 className="text-lg font-semibold text-soft-white">Recent Transactions</h3>
 				</div>
 				<div className="p-6">
 					<div className="space-y-4">
 						{mockTransactions.slice(0, 3).map((tx) => (
-							<div
-								key={tx.id}
-								className="flex items-center justify-between p-4 bg-medium-gray rounded-lg"
-							>
+							<div key={tx.id} className="flex items-center justify-between p-4 bg-medium-gray rounded-lg">
 								<div className="flex items-center space-x-4">
-									<div
-										className={`h-10 w-10 rounded-full flex items-center justify-center ${
-											tx.type === "Buy"
-												? "bg-metallic-gold bg-opacity-20"
-												: "bg-red-500 bg-opacity-20"
-										}`}
-									>
-										{tx.type === "Buy" ? (
-											<TrendingUp
-												className={`h-5 w-5 ${
-													tx.type === "Buy"
-														? "text-metallic-gold"
-														: "text-red-400"
-												}`}
-											/>
-										) : (
-											<TrendingDown
-												className={`h-5 w-5 ${
-													tx.type === "Buy"
-														? "text-metallic-gold"
-														: "text-red-400"
-												}`}
-											/>
-										)}
+									<div className={`h-10 w-10 rounded-full flex items-center justify-center ${tx.type === 'Buy' ? 'bg-metallic-gold bg-opacity-20' : 'bg-red-500 bg-opacity-20'
+										}`}>
+										{tx.type === 'Buy' ?
+											<TrendingUp className={`h-5 w-5 ${tx.type === 'Buy' ? 'text-metallic-gold' : 'text-red-400'}`} /> :
+											<TrendingDown className={`h-5 w-5 ${tx.type === 'Buy' ? 'text-metallic-gold' : 'text-red-400'}`} />
+										}
 									</div>
 									<div>
-										<p className="font-medium text-soft-white">
-											{tx.type} {tx.coin}
-										</p>
+										<p className="font-medium text-soft-white">{tx.type} {tx.coin}</p>
 										<p className="text-sm text-gray-400">{tx.date}</p>
 									</div>
 								</div>
 								<div className="text-right">
 									<p className="font-medium text-soft-white">{tx.amount}</p>
-									<span
-										className={`text-xs px-2 py-1 rounded-full ${
-											tx.status === "Completed"
-												? "bg-metallic-gold bg-opacity-20 text-metallic-gold"
-												: tx.status === "Pending"
-												? "bg-yellow-100 text-yellow-800"
-												: "bg-red-500 bg-opacity-20 text-red-400"
-										}`}
-									>
+									<span className={`text-xs px-2 py-1 rounded-full ${tx.status === 'Completed' ? 'bg-metallic-gold bg-opacity-20 text-metallic-gold' :
+										tx.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
+											'bg-red-500 bg-opacity-20 text-red-400'
+										}`}>
 										{tx.status}
 									</span>
 								</div>
 							</div>
 						))}
 					</div>
-					<button
-						onClick={() => setActiveView("transactions")}
-						className="w-full mt-4 py-2 text-metallic-gold hover:bg-metallic-gold hover:bg-opacity-10 rounded-lg transition-colors"
-					>
-						View All Transactions
-					</button>
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+						<button
+							onClick={() => setActiveView('transactions')}
+							className="py-2 text-metallic-gold hover:bg-metallic-gold hover:bg-opacity-10 rounded-lg transition-colors"
+						>
+							View All Transactions
+						</button>
+						<button
+							onClick={() => setShowWithdrawPage(true)}
+							className="py-2 bg-electric-blue text-soft-white hover:bg-blue-hover rounded-lg transition-colors flex items-center justify-center"
+						>
+							<Send className="h-4 w-4 mr-2" />
+							Withdraw to Bank
+						</button>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -399,18 +368,12 @@ export default function WorkerDashboard({
 			</div>
 
 			<div className="bg-dark-gray p-6 rounded-xl border border-medium-gray">
-				<h3 className="text-lg font-semibold text-soft-white mb-6">
-					Primary Wallet Address
-				</h3>
+				<h3 className="text-lg font-semibold text-soft-white mb-6">Primary Wallet Address</h3>
 				<div className="flex items-center justify-between p-4 bg-medium-gray rounded-lg mb-4">
-					<span className="text-sm font-mono text-soft-white">
-						{user.walletAddress}
-					</span>
+					<span className="text-sm font-mono text-soft-white">{user.walletAddress}</span>
 					<div className="flex space-x-2">
 						<button
-							onClick={() =>
-								navigator.clipboard.writeText(user.walletAddress || "")
-							}
+							onClick={() => navigator.clipboard.writeText(user.walletAddress || '')}
 							className="p-2 text-gray-400 hover:text-metallic-gold transition-colors"
 						>
 							<Copy className="h-4 w-4" />
@@ -556,9 +519,7 @@ export default function WorkerDashboard({
 			</div>
 
 			<div className="bg-dark-gray p-6 rounded-xl border border-medium-gray">
-				<h3 className="text-lg font-semibold text-soft-white mb-4">
-					Wallet Actions
-				</h3>
+				<h3 className="text-lg font-semibold text-soft-white mb-4">Wallet Actions</h3>
 				<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 					<button className="flex items-center justify-center p-4 border border-light-gray rounded-lg hover:border-metallic-gold hover:bg-metallic-gold hover:bg-opacity-10 transition-colors">
 						<TrendingUp className="h-5 w-5 mr-2 text-metallic-gold" />
@@ -569,7 +530,7 @@ export default function WorkerDashboard({
 						<span className="font-medium text-soft-white">Withdraw</span>
 					</button>
 					<button
-						onClick={() => setActiveView("trade")}
+						onClick={() => setActiveView('trade')}
 						className="flex items-center justify-center p-4 bg-metallic-gold text-primary-black rounded-lg hover:bg-gold-hover transition-all"
 					>
 						<ArrowUpDown className="h-5 w-5 mr-2" />
@@ -595,22 +556,20 @@ export default function WorkerDashboard({
 				<div className="p-6 border-b border-medium-gray">
 					<div className="flex space-x-4">
 						<button
-							onClick={() => setTradeType("buy")}
-							className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-								tradeType === "buy"
-									? "bg-metallic-gold text-primary-black"
-									: "text-gray-400 hover:bg-medium-gray"
-							}`}
+							onClick={() => setTradeType('buy')}
+							className={`px-4 py-2 rounded-lg font-medium transition-colors ${tradeType === 'buy'
+								? 'bg-metallic-gold text-primary-black'
+								: 'text-gray-400 hover:bg-medium-gray'
+								}`}
 						>
 							Buy Crypto
 						</button>
 						<button
-							onClick={() => setTradeType("sell")}
-							className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-								tradeType === "sell"
-									? "bg-electric-blue text-soft-white"
-									: "text-gray-400 hover:bg-medium-gray"
-							}`}
+							onClick={() => setTradeType('sell')}
+							className={`px-4 py-2 rounded-lg font-medium transition-colors ${tradeType === 'sell'
+								? 'bg-electric-blue text-soft-white'
+								: 'text-gray-400 hover:bg-medium-gray'
+								}`}
 						>
 							Sell Crypto
 						</button>
@@ -620,9 +579,7 @@ export default function WorkerDashboard({
 				<div className="p-6">
 					<div className="max-w-md mx-auto space-y-6">
 						<div>
-							<label className="block text-sm font-medium text-soft-white mb-2">
-								Select Cryptocurrency
-							</label>
+							<label className="block text-sm font-medium text-soft-white mb-2">Select Cryptocurrency</label>
 							<div className="relative">
 								<select
 									value={selectedCoin}
@@ -648,9 +605,8 @@ export default function WorkerDashboard({
 								value={amount}
 								onChange={(e) => setAmount(e.target.value)}
 								className="w-full p-3 bg-medium-gray border border-light-gray rounded-lg focus:ring-2 focus:ring-metallic-gold focus:border-transparent text-soft-white placeholder-gray-500"
-								placeholder={`Enter amount in ${
-									tradeType === "buy" ? "NGN" : selectedCoin
-								}`}
+								placeholder={`Enter amount in ${tradeType === "buy" ? "NGN" : selectedCoin
+									}`}
 							/>
 						</div>
 
@@ -666,7 +622,7 @@ export default function WorkerDashboard({
 											{(
 												parseFloat(amount) /
 												cryptoRates[
-													selectedCoin.split("-")[0] as keyof typeof cryptoRates
+												selectedCoin.split("-")[0] as keyof typeof cryptoRates
 												]
 											).toFixed(6)}{" "}
 											{selectedCoin}
@@ -686,7 +642,7 @@ export default function WorkerDashboard({
 											{(
 												parseFloat(amount) *
 												cryptoRates[
-													selectedCoin.split("-")[0] as keyof typeof cryptoRates
+												selectedCoin.split("-")[0] as keyof typeof cryptoRates
 												]
 											).toLocaleString()}
 										</p>
@@ -703,15 +659,12 @@ export default function WorkerDashboard({
 						)}
 
 						<button
-							className={`w-full py-3 px-4 rounded-lg font-medium transition-all ${
-								tradeType === "buy"
-									? "bg-metallic-gold text-primary-black hover:bg-gold-hover"
-									: "bg-electric-blue text-soft-white hover:bg-blue-hover"
-							}`}
+							className={`w-full py-3 px-4 rounded-lg font-medium transition-all ${tradeType === 'buy'
+								? 'bg-metallic-gold text-primary-black hover:bg-gold-hover'
+								: 'bg-electric-blue text-soft-white hover:bg-blue-hover'
+								}`}
 						>
-							{tradeType === "buy"
-								? `Buy ${selectedCoin.split("-")[0]}`
-								: `Sell ${selectedCoin.split("-")[0]}`}
+							{tradeType === 'buy' ? `Buy ${selectedCoin.split('-')[0]}` : `Sell ${selectedCoin.split('-')[0]}`}
 						</button>
 					</div>
 				</div>
@@ -795,9 +748,7 @@ export default function WorkerDashboard({
 					<div className="h-16 w-16 bg-metallic-gold bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4">
 						<DollarSign className="h-8 w-8 text-metallic-gold" />
 					</div>
-					<h2 className="text-3xl font-bold text-soft-white">
-						₦{user.balance?.ngn.toLocaleString()}
-					</h2>
+					<h2 className="text-3xl font-bold text-soft-white">₦{user.balance?.ngn.toLocaleString()}</h2>
 					<p className="text-gray-400">Available Balance</p>
 				</div>
 
@@ -811,7 +762,7 @@ export default function WorkerDashboard({
 						Withdraw NGN
 					</button>
 					<button
-						onClick={() => setActiveView("trade")}
+						onClick={() => setActiveView('trade')}
 						className="flex items-center justify-center p-4 bg-electric-blue text-soft-white rounded-lg hover:bg-blue-hover transition-all"
 					>
 						<ArrowUpDown className="h-5 w-5 mr-2" />
@@ -849,24 +800,16 @@ export default function WorkerDashboard({
 					<div className="h-16 w-16 bg-orange-500 bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4">
 						<Bitcoin className="h-8 w-8 text-orange-500" />
 					</div>
-					<h2 className="text-3xl font-bold text-soft-white">
-						{user.balance?.btc} BTC
-					</h2>
-					<p className="text-gray-400">
-						≈ ₦{((user.balance?.btc || 0) * 20000000).toLocaleString()}
-					</p>
+					<h2 className="text-3xl font-bold text-soft-white">{user.balance?.btc} BTC</h2>
+					<p className="text-gray-400">≈ ₦{((user.balance?.btc || 0) * 20000000).toLocaleString()}</p>
 				</div>
 
 				<div className="mb-6">
 					<p className="text-sm text-gray-400 mb-2">Wallet Address:</p>
 					<div className="flex items-center justify-between p-3 bg-medium-gray rounded-lg">
-						<span className="text-sm font-mono text-soft-white">
-							{user.walletAddress}
-						</span>
+						<span className="text-sm font-mono text-soft-white">{user.walletAddress}</span>
 						<button
-							onClick={() =>
-								navigator.clipboard.writeText(user.walletAddress || "")
-							}
+							onClick={() => navigator.clipboard.writeText(user.walletAddress || '')}
 							className="p-2 text-gray-400 hover:text-metallic-gold transition-colors"
 						>
 							<Copy className="h-4 w-4" />
@@ -884,10 +827,7 @@ export default function WorkerDashboard({
 						Send BTC
 					</button>
 					<button
-						onClick={() => {
-							setActiveView("trade");
-							setTradeType("sell");
-						}}
+						onClick={() => { setActiveView('trade'); setTradeType('sell'); }}
 						className="flex items-center justify-center p-4 bg-electric-blue text-soft-white rounded-lg hover:bg-blue-hover transition-all"
 					>
 						<ArrowUpDown className="h-5 w-5 mr-2" />
@@ -898,46 +838,32 @@ export default function WorkerDashboard({
 
 			<div className="bg-dark-gray rounded-xl border border-medium-gray">
 				<div className="p-6 border-b border-medium-gray">
-					<h3 className="text-lg font-semibold text-soft-white">
-						Bitcoin Transaction History
-					</h3>
+					<h3 className="text-lg font-semibold text-soft-white">Bitcoin Transaction History</h3>
 				</div>
 				<div className="p-6">
 					<div className="space-y-4">
-						{mockTransactions
-							.filter((tx) => tx.coin === "BTC")
-							.map((tx) => (
-								<div
-									key={tx.id}
-									className="flex items-center justify-between p-4 bg-medium-gray rounded-lg"
-								>
-									<div className="flex items-center space-x-4">
-										<div className="h-10 w-10 bg-orange-500 bg-opacity-20 rounded-full flex items-center justify-center">
-											<Bitcoin className="h-5 w-5 text-orange-500" />
-										</div>
-										<div>
-											<p className="font-medium text-soft-white">
-												{tx.type} Bitcoin
-											</p>
-											<p className="text-sm text-gray-400">{tx.date}</p>
-										</div>
+						{mockTransactions.filter(tx => tx.coin === 'BTC').map((tx) => (
+							<div key={tx.id} className="flex items-center justify-between p-4 bg-medium-gray rounded-lg">
+								<div className="flex items-center space-x-4">
+									<div className="h-10 w-10 bg-orange-500 bg-opacity-20 rounded-full flex items-center justify-center">
+										<Bitcoin className="h-5 w-5 text-orange-500" />
 									</div>
-									<div className="text-right">
-										<p className="font-medium text-soft-white">{tx.crypto}</p>
-										<span
-											className={`text-xs px-2 py-1 rounded-full ${
-												tx.status === "Completed"
-													? "bg-metallic-gold bg-opacity-20 text-metallic-gold"
-													: tx.status === "Pending"
-													? "bg-yellow-500 bg-opacity-20 text-yellow-400"
-													: "bg-red-500 bg-opacity-20 text-red-400"
-											}`}
-										>
-											{tx.status}
-										</span>
+									<div>
+										<p className="font-medium text-soft-white">{tx.type} Bitcoin</p>
+										<p className="text-sm text-gray-400">{tx.date}</p>
 									</div>
 								</div>
-							))}
+								<div className="text-right">
+									<p className="font-medium text-soft-white">{tx.crypto}</p>
+									<span className={`text-xs px-2 py-1 rounded-full ${tx.status === 'Completed' ? 'bg-metallic-gold bg-opacity-20 text-metallic-gold' :
+										tx.status === 'Pending' ? 'bg-yellow-500 bg-opacity-20 text-yellow-400' :
+											'bg-red-500 bg-opacity-20 text-red-400'
+										}`}>
+										{tx.status}
+									</span>
+								</div>
+							</div>
+						))}
 					</div>
 				</div>
 			</div>
@@ -958,24 +884,16 @@ export default function WorkerDashboard({
 					<div className="h-16 w-16 bg-electric-blue bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4">
 						<Coins className="h-8 w-8 text-electric-blue" />
 					</div>
-					<h2 className="text-3xl font-bold text-soft-white">
-						{user.balance?.eth} ETH
-					</h2>
-					<p className="text-gray-400">
-						≈ ₦{((user.balance?.eth || 0) * 800000).toLocaleString()}
-					</p>
+					<h2 className="text-3xl font-bold text-soft-white">{user.balance?.eth} ETH</h2>
+					<p className="text-gray-400">≈ ₦{((user.balance?.eth || 0) * 800000).toLocaleString()}</p>
 				</div>
 
 				<div className="mb-6">
 					<p className="text-sm text-gray-400 mb-2">Ethereum Address:</p>
 					<div className="flex items-center justify-between p-3 bg-medium-gray rounded-lg">
-						<span className="text-sm font-mono text-soft-white">
-							0x742d35Cc6634C0532925a3b8D4
-						</span>
+						<span className="text-sm font-mono text-soft-white">0x742d35Cc6634C0532925a3b8D4</span>
 						<button
-							onClick={() =>
-								navigator.clipboard.writeText("0x742d35Cc6634C0532925a3b8D4")
-							}
+							onClick={() => navigator.clipboard.writeText('0x742d35Cc6634C0532925a3b8D4')}
 							className="p-2 text-gray-400 hover:text-metallic-gold transition-colors"
 						>
 							<Copy className="h-4 w-4" />
@@ -993,10 +911,7 @@ export default function WorkerDashboard({
 						Send ETH
 					</button>
 					<button
-						onClick={() => {
-							setActiveView("trade");
-							setTradeType("sell");
-						}}
+						onClick={() => { setActiveView('trade'); setTradeType('sell'); }}
 						className="flex items-center justify-center p-4 bg-metallic-gold text-primary-black rounded-lg hover:bg-gold-hover transition-all"
 					>
 						<ArrowUpDown className="h-5 w-5 mr-2" />
@@ -1007,46 +922,32 @@ export default function WorkerDashboard({
 
 			<div className="bg-dark-gray rounded-xl border border-medium-gray">
 				<div className="p-6 border-b border-medium-gray">
-					<h3 className="text-lg font-semibold text-soft-white">
-						Ethereum Transaction History
-					</h3>
+					<h3 className="text-lg font-semibold text-soft-white">Ethereum Transaction History</h3>
 				</div>
 				<div className="p-6">
 					<div className="space-y-4">
-						{mockTransactions
-							.filter((tx) => tx.coin === "ETH")
-							.map((tx) => (
-								<div
-									key={tx.id}
-									className="flex items-center justify-between p-4 bg-medium-gray rounded-lg"
-								>
-									<div className="flex items-center space-x-4">
-										<div className="h-10 w-10 bg-electric-blue bg-opacity-20 rounded-full flex items-center justify-center">
-											<Coins className="h-5 w-5 text-electric-blue" />
-										</div>
-										<div>
-											<p className="font-medium text-soft-white">
-												{tx.type} Ethereum
-											</p>
-											<p className="text-sm text-gray-400">{tx.date}</p>
-										</div>
+						{mockTransactions.filter(tx => tx.coin === 'ETH').map((tx) => (
+							<div key={tx.id} className="flex items-center justify-between p-4 bg-medium-gray rounded-lg">
+								<div className="flex items-center space-x-4">
+									<div className="h-10 w-10 bg-electric-blue bg-opacity-20 rounded-full flex items-center justify-center">
+										<Coins className="h-5 w-5 text-electric-blue" />
 									</div>
-									<div className="text-right">
-										<p className="font-medium text-soft-white">{tx.crypto}</p>
-										<span
-											className={`text-xs px-2 py-1 rounded-full ${
-												tx.status === "Completed"
-													? "bg-metallic-gold bg-opacity-20 text-metallic-gold"
-													: tx.status === "Pending"
-													? "bg-yellow-500 bg-opacity-20 text-yellow-400"
-													: "bg-red-500 bg-opacity-20 text-red-400"
-											}`}
-										>
-											{tx.status}
-										</span>
+									<div>
+										<p className="font-medium text-soft-white">{tx.type} Ethereum</p>
+										<p className="text-sm text-gray-400">{tx.date}</p>
 									</div>
 								</div>
-							))}
+								<div className="text-right">
+									<p className="font-medium text-soft-white">{tx.crypto}</p>
+									<span className={`text-xs px-2 py-1 rounded-full ${tx.status === 'Completed' ? 'bg-metallic-gold bg-opacity-20 text-metallic-gold' :
+										tx.status === 'Pending' ? 'bg-yellow-500 bg-opacity-20 text-yellow-400' :
+											'bg-red-500 bg-opacity-20 text-red-400'
+										}`}>
+										{tx.status}
+									</span>
+								</div>
+							</div>
+						))}
 					</div>
 				</div>
 			</div>
@@ -1074,15 +975,9 @@ export default function WorkerDashboard({
 				<div className="mb-6">
 					<p className="text-sm text-gray-400 mb-2">TRC-20 Address:</p>
 					<div className="flex items-center justify-between p-3 bg-medium-gray rounded-lg">
-						<span className="text-sm font-mono text-soft-white">
-							TQn9Y2khEsLJW1ChVWFMSMeRDow5KcbLSE
-						</span>
+						<span className="text-sm font-mono text-soft-white">TQn9Y2khEsLJW1ChVWFMSMeRDow5KcbLSE</span>
 						<button
-							onClick={() =>
-								navigator.clipboard.writeText(
-									"TQn9Y2khEsLJW1ChVWFMSMeRDow5KcbLSE"
-								)
-							}
+							onClick={() => navigator.clipboard.writeText('TQn9Y2khEsLJW1ChVWFMSMeRDow5KcbLSE')}
 							className="p-2 text-gray-400 hover:text-metallic-gold transition-colors"
 						>
 							<Copy className="h-4 w-4" />
@@ -1100,10 +995,7 @@ export default function WorkerDashboard({
 						Send USDT
 					</button>
 					<button
-						onClick={() => {
-							setActiveView("trade");
-							setTradeType("sell");
-						}}
+						onClick={() => { setActiveView('trade'); setTradeType('sell'); }}
 						className="flex items-center justify-center p-4 bg-electric-blue text-soft-white rounded-lg hover:bg-blue-hover transition-all"
 					>
 						<ArrowUpDown className="h-5 w-5 mr-2" />
@@ -1114,46 +1006,32 @@ export default function WorkerDashboard({
 
 			<div className="bg-dark-gray rounded-xl border border-medium-gray">
 				<div className="p-6 border-b border-medium-gray">
-					<h3 className="text-lg font-semibold text-soft-white">
-						TRC-20 Transaction History
-					</h3>
+					<h3 className="text-lg font-semibold text-soft-white">TRC-20 Transaction History</h3>
 				</div>
 				<div className="p-6">
 					<div className="space-y-4">
-						{mockTransactions
-							.filter((tx) => tx.coin === "USDT-TRC20")
-							.map((tx) => (
-								<div
-									key={tx.id}
-									className="flex items-center justify-between p-4 bg-medium-gray rounded-lg"
-								>
-									<div className="flex items-center space-x-4">
-										<div className="h-10 w-10 bg-red-500 bg-opacity-20 rounded-full flex items-center justify-center">
-											<span className="text-red-400 font-bold">T</span>
-										</div>
-										<div>
-											<p className="font-medium text-soft-white">
-												{tx.type} USDT TRC-20
-											</p>
-											<p className="text-sm text-gray-400">{tx.date}</p>
-										</div>
+						{mockTransactions.filter(tx => tx.coin === 'USDT-TRC20').map((tx) => (
+							<div key={tx.id} className="flex items-center justify-between p-4 bg-medium-gray rounded-lg">
+								<div className="flex items-center space-x-4">
+									<div className="h-10 w-10 bg-red-500 bg-opacity-20 rounded-full flex items-center justify-center">
+										<span className="text-red-400 font-bold">T</span>
 									</div>
-									<div className="text-right">
-										<p className="font-medium text-soft-white">{tx.crypto}</p>
-										<span
-											className={`text-xs px-2 py-1 rounded-full ${
-												tx.status === "Completed"
-													? "bg-metallic-gold bg-opacity-20 text-metallic-gold"
-													: tx.status === "Pending"
-													? "bg-yellow-500 bg-opacity-20 text-yellow-400"
-													: "bg-red-500 bg-opacity-20 text-red-400"
-											}`}
-										>
-											{tx.status}
-										</span>
+									<div>
+										<p className="font-medium text-soft-white">{tx.type} USDT TRC-20</p>
+										<p className="text-sm text-gray-400">{tx.date}</p>
 									</div>
 								</div>
-							))}
+								<div className="text-right">
+									<p className="font-medium text-soft-white">{tx.crypto}</p>
+									<span className={`text-xs px-2 py-1 rounded-full ${tx.status === 'Completed' ? 'bg-metallic-gold bg-opacity-20 text-metallic-gold' :
+										tx.status === 'Pending' ? 'bg-yellow-500 bg-opacity-20 text-yellow-400' :
+											'bg-red-500 bg-opacity-20 text-red-400'
+										}`}>
+										{tx.status}
+									</span>
+								</div>
+							</div>
+						))}
 					</div>
 				</div>
 			</div>
@@ -1181,13 +1059,9 @@ export default function WorkerDashboard({
 				<div className="mb-6">
 					<p className="text-sm text-gray-400 mb-2">ERC-20 Address:</p>
 					<div className="flex items-center justify-between p-3 bg-medium-gray rounded-lg">
-						<span className="text-sm font-mono text-soft-white">
-							0x742d35Cc6634C0532925a3b8D4
-						</span>
+						<span className="text-sm font-mono text-soft-white">0x742d35Cc6634C0532925a3b8D4</span>
 						<button
-							onClick={() =>
-								navigator.clipboard.writeText("0x742d35Cc6634C0532925a3b8D4")
-							}
+							onClick={() => navigator.clipboard.writeText('0x742d35Cc6634C0532925a3b8D4')}
 							className="p-2 text-gray-400 hover:text-metallic-gold transition-colors"
 						>
 							<Copy className="h-4 w-4" />
@@ -1205,10 +1079,7 @@ export default function WorkerDashboard({
 						Send USDT
 					</button>
 					<button
-						onClick={() => {
-							setActiveView("trade");
-							setTradeType("sell");
-						}}
+						onClick={() => { setActiveView('trade'); setTradeType('sell'); }}
 						className="flex items-center justify-center p-4 bg-metallic-gold text-primary-black rounded-lg hover:bg-gold-hover transition-all"
 					>
 						<ArrowUpDown className="h-5 w-5 mr-2" />
@@ -1219,46 +1090,32 @@ export default function WorkerDashboard({
 
 			<div className="bg-dark-gray rounded-xl border border-medium-gray">
 				<div className="p-6 border-b border-medium-gray">
-					<h3 className="text-lg font-semibold text-soft-white">
-						ERC-20 Transaction History
-					</h3>
+					<h3 className="text-lg font-semibold text-soft-white">ERC-20 Transaction History</h3>
 				</div>
 				<div className="p-6">
 					<div className="space-y-4">
-						{mockTransactions
-							.filter((tx) => tx.coin === "USDT-ERC20")
-							.map((tx) => (
-								<div
-									key={tx.id}
-									className="flex items-center justify-between p-4 bg-medium-gray rounded-lg"
-								>
-									<div className="flex items-center space-x-4">
-										<div className="h-10 w-10 bg-electric-blue bg-opacity-20 rounded-full flex items-center justify-center">
-											<span className="text-electric-blue font-bold">E</span>
-										</div>
-										<div>
-											<p className="font-medium text-soft-white">
-												{tx.type} USDT ERC-20
-											</p>
-											<p className="text-sm text-gray-400">{tx.date}</p>
-										</div>
+						{mockTransactions.filter(tx => tx.coin === 'USDT-ERC20').map((tx) => (
+							<div key={tx.id} className="flex items-center justify-between p-4 bg-medium-gray rounded-lg">
+								<div className="flex items-center space-x-4">
+									<div className="h-10 w-10 bg-electric-blue bg-opacity-20 rounded-full flex items-center justify-center">
+										<span className="text-electric-blue font-bold">E</span>
 									</div>
-									<div className="text-right">
-										<p className="font-medium text-soft-white">{tx.crypto}</p>
-										<span
-											className={`text-xs px-2 py-1 rounded-full ${
-												tx.status === "Completed"
-													? "bg-metallic-gold bg-opacity-20 text-metallic-gold"
-													: tx.status === "Pending"
-													? "bg-yellow-500 bg-opacity-20 text-yellow-400"
-													: "bg-red-500 bg-opacity-20 text-red-400"
-											}`}
-										>
-											{tx.status}
-										</span>
+									<div>
+										<p className="font-medium text-soft-white">{tx.type} USDT ERC-20</p>
+										<p className="text-sm text-gray-400">{tx.date}</p>
 									</div>
 								</div>
-							))}
+								<div className="text-right">
+									<p className="font-medium text-soft-white">{tx.crypto}</p>
+									<span className={`text-xs px-2 py-1 rounded-full ${tx.status === 'Completed' ? 'bg-metallic-gold bg-opacity-20 text-metallic-gold' :
+										tx.status === 'Pending' ? 'bg-yellow-500 bg-opacity-20 text-yellow-400' :
+											'bg-red-500 bg-opacity-20 text-red-400'
+										}`}>
+										{tx.status}
+									</span>
+								</div>
+							</div>
+						))}
 					</div>
 				</div>
 			</div>
@@ -1286,15 +1143,9 @@ export default function WorkerDashboard({
 				<div className="mb-6">
 					<p className="text-sm text-gray-400 mb-2">BEP-20 Address:</p>
 					<div className="flex items-center justify-between p-3 bg-medium-gray rounded-lg">
-						<span className="text-sm font-mono text-soft-white">
-							0x8894E0a0c962CB723c1976a4421c95949bE2D4E6
-						</span>
+						<span className="text-sm font-mono text-soft-white">0x8894E0a0c962CB723c1976a4421c95949bE2D4E6</span>
 						<button
-							onClick={() =>
-								navigator.clipboard.writeText(
-									"0x8894E0a0c962CB723c1976a4421c95949bE2D4E6"
-								)
-							}
+							onClick={() => navigator.clipboard.writeText('0x8894E0a0c962CB723c1976a4421c95949bE2D4E6')}
 							className="p-2 text-gray-400 hover:text-metallic-gold transition-colors"
 						>
 							<Copy className="h-4 w-4" />
@@ -1312,10 +1163,7 @@ export default function WorkerDashboard({
 						Send USDT
 					</button>
 					<button
-						onClick={() => {
-							setActiveView("trade");
-							setTradeType("sell");
-						}}
+						onClick={() => { setActiveView('trade'); setTradeType('sell'); }}
 						className="flex items-center justify-center p-4 bg-electric-blue text-soft-white rounded-lg hover:bg-blue-hover transition-all"
 					>
 						<ArrowUpDown className="h-5 w-5 mr-2" />
@@ -1342,12 +1190,8 @@ export default function WorkerDashboard({
 	const renderTransactions = () => (
 		<div className="space-y-8">
 			<div>
-				<h1 className="text-2xl font-bold text-soft-white mb-2">
-					Transaction History
-				</h1>
-				<p className="text-gray-400">
-					View and manage all your cryptocurrency transactions
-				</p>
+				<h1 className="text-2xl font-bold text-soft-white mb-2">Transaction History</h1>
+				<p className="text-gray-400">View and manage all your cryptocurrency transactions</p>
 			</div>
 
 			<div className="bg-dark-gray rounded-xl border border-medium-gray">
@@ -1375,21 +1219,11 @@ export default function WorkerDashboard({
 					<table className="w-full">
 						<thead className="bg-medium-gray">
 							<tr>
-								<th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-									Transaction
-								</th>
-								<th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-									Amount
-								</th>
-								<th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-									Crypto Amount
-								</th>
-								<th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-									Status
-								</th>
-								<th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-									Date
-								</th>
+								<th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Transaction</th>
+								<th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Amount</th>
+								<th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Crypto Amount</th>
+								<th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Status</th>
+								<th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Date</th>
 							</tr>
 						</thead>
 						<tbody className="divide-y divide-medium-gray">
@@ -1397,49 +1231,30 @@ export default function WorkerDashboard({
 								<tr key={tx.id}>
 									<td className="px-6 py-4 whitespace-nowrap">
 										<div className="flex items-center">
-											<div
-												className={`h-8 w-8 rounded-full flex items-center justify-center mr-3 ${
-													tx.type === "Buy"
-														? "bg-metallic-gold bg-opacity-20"
-														: "bg-red-500 bg-opacity-20"
-												}`}
-											>
-												{tx.type === "Buy" ? (
-													<TrendingUp className="h-4 w-4 text-metallic-gold" />
-												) : (
+											<div className={`h-8 w-8 rounded-full flex items-center justify-center mr-3 ${tx.type === 'Buy' ? 'bg-metallic-gold bg-opacity-20' : 'bg-red-500 bg-opacity-20'
+												}`}>
+												{tx.type === 'Buy' ?
+													<TrendingUp className="h-4 w-4 text-metallic-gold" /> :
 													<TrendingDown className="h-4 w-4 text-red-400" />
-												)}
+												}
 											</div>
 											<div>
-												<p className="font-medium text-soft-white">
-													{tx.type} {tx.coin}
-												</p>
+												<p className="font-medium text-soft-white">{tx.type} {tx.coin}</p>
 												<p className="text-sm text-gray-400">#{tx.id}</p>
 											</div>
 										</div>
 									</td>
-									<td className="px-6 py-4 whitespace-nowrap text-sm text-soft-white">
-										{tx.amount}
-									</td>
-									<td className="px-6 py-4 whitespace-nowrap text-sm text-soft-white">
-										{tx.crypto}
-									</td>
+									<td className="px-6 py-4 whitespace-nowrap text-sm text-soft-white">{tx.amount}</td>
+									<td className="px-6 py-4 whitespace-nowrap text-sm text-soft-white">{tx.crypto}</td>
 									<td className="px-6 py-4 whitespace-nowrap">
-										<span
-											className={`px-2 py-1 text-xs font-medium rounded-full ${
-												tx.status === "Completed"
-													? "bg-metallic-gold bg-opacity-20 text-metallic-gold"
-													: tx.status === "Pending"
-													? "bg-yellow-100 text-yellow-800"
-													: "bg-red-500 bg-opacity-20 text-red-400"
-											}`}
-										>
+										<span className={`px-2 py-1 text-xs font-medium rounded-full ${tx.status === 'Completed' ? 'bg-metallic-gold bg-opacity-20 text-metallic-gold' :
+											tx.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
+												'bg-red-500 bg-opacity-20 text-red-400'
+											}`}>
 											{tx.status}
 										</span>
 									</td>
-									<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
-										{tx.date}
-									</td>
+									<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">{tx.date}</td>
 								</tr>
 							))}
 						</tbody>
