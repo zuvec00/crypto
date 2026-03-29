@@ -1,14 +1,18 @@
 import { useState } from 'react';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle, Wallet, CheckCircle, XCircle } from 'lucide-react';
 import { useUsers } from '../../hooks/useUsers';
 import { UserRow } from '../../components/UserRow';
 import AddUserSidebar from '../../components/AddUserModal';
+import FundUserModal from '../../components/FundUserModal';
 
 export default function UsersPage() {
   const { users, loading, error, refetch, toggleUserStatus, addUser } = useUsers();
   const [toggleLoading, setToggleLoading] = useState<string | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showFundModal, setShowFundModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
   const [hiddenRows, setHiddenRows] = useState<Set<string>>(new Set());
+  const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
 
 
@@ -18,8 +22,52 @@ export default function UsersPage() {
     setToggleLoading(null);
   };
 
+  const handleFundUser = async (data: { quidaxSubAccountId: string; amount: string; currency: string }) => {
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api'}/wallet/fund`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        setNotification({ type: 'error', message: result.message || 'Failed to fund user wallet' });
+        setTimeout(() => setNotification(null), 5000);
+        return { success: false, error: result.message || 'Failed to fund user' };
+      }
+
+      setNotification({ type: 'success', message: result.message || 'User wallet funded successfully' });
+      setTimeout(() => setNotification(null), 5000);
+      return { success: true };
+    } catch (error) {
+      setNotification({ type: 'error', message: 'Network error occurred. Please try again.' });
+      setTimeout(() => setNotification(null), 5000);
+      return { success: false, error: 'Network error occurred' };
+    }
+  };
+
   return (
     <div className="space-y-8">
+      {notification && (
+        <div className={`fixed bottom-4 right-4 z-50 flex items-center space-x-3 px-4 py-3 rounded-lg shadow-lg ${
+          notification.type === 'success' ? 'bg-green-500 bg-opacity-20 border border-green-500' : 'bg-red-500 bg-opacity-20 border border-red-500'
+        }`}>
+          {notification.type === 'success' ? (
+            <CheckCircle className="h-5 w-5 text-green-400" />
+          ) : (
+            <XCircle className="h-5 w-5 text-red-400" />
+          )}
+          <p className={notification.type === 'success' ? 'text-green-400' : 'text-red-400'}>
+            {notification.message}
+          </p>
+        </div>
+      )}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
         <div>
           <h1 className="text-2xl font-bold text-soft-white mb-2">User Management</h1>
@@ -43,6 +91,7 @@ export default function UsersPage() {
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Balance</th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Status</th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Actions</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Fund</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-medium-gray">
@@ -89,6 +138,10 @@ export default function UsersPage() {
                       }
                       setHiddenRows(newHidden);
                     }}
+                    onFund={() => {
+                      setSelectedUser(user);
+                      setShowFundModal(true);
+                    }}
                   />
                 ))
               )}
@@ -102,6 +155,18 @@ export default function UsersPage() {
         onClose={() => setShowAddModal(false)}
         onAddUser={addUser}
       />
+
+      {selectedUser && (
+        <FundUserModal
+          isOpen={showFundModal}
+          onClose={() => {
+            setShowFundModal(false);
+            setSelectedUser(null);
+          }}
+          user={selectedUser}
+          onFund={handleFundUser}
+        />
+      )}
     </div>
   );
 }

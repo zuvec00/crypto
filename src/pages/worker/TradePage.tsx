@@ -129,16 +129,38 @@ export default function TradePage() {
 			}
 		}
 
+		const formatVolume = (amount: string, sigFigs: number): string => {
+			const num = parseFloat(amount);
+			if (isNaN(num)) return amount;
+			return parseFloat(num.toPrecision(sigFigs)).toString();
+		};
+
 		try {
 			let result;
 
 			if (tradeType === "buy") {
-				result = await buyCrypto(selectedCoin, (
+				const cryptoAmount = (
 					parseFloat(amount) /
 					parseFloat(selectRate?.buy || "1")
-				).toFixed(8), amount);
+				).toFixed(8);
+
+				const volume =
+					selectedCoin === "usdt"
+						? formatVolume(cryptoAmount, 1)
+						: selectedCoin === "eth"
+							? formatVolume(cryptoAmount, 3)
+							: cryptoAmount;
+
+				result = await buyCrypto(selectedCoin, volume, amount);
 			} else {
-				result = await sellCrypto(selectedCoin, amount, (
+				const volume =
+					selectedCoin === "usdt"
+						? formatVolume(amount, 1)
+						: selectedCoin === "eth"
+							? formatVolume(amount, 3)
+							: amount;
+
+				result = await sellCrypto(selectedCoin, volume, (
 					parseFloat(amount) /
 					parseFloat(selectRate?.buy || "1")
 				).toFixed(8));
