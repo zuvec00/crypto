@@ -20,6 +20,7 @@ import {
 	BanknoteIcon,
 	Coins,
 	CreditCard,
+	PiggyBank,
 } from "lucide-react";
 import LoginPage from "./pages/LoginPage";
 import Layout from "./components/Layout";
@@ -35,6 +36,7 @@ import BTCWallet from "./pages/worker/BTCWalletPage";
 import ETHWallet from "./pages/worker/ETHWalletPage";
 import USDTWallet from "./pages/worker/USDTWalletPage";
 import WithdrawPage from "./pages/worker/WithdrawPage";
+import FundPage from "./pages/worker/FundPage";
 
 // Admin Pages
 import AdminDashboard from "./pages/admin/DashboardPage";
@@ -81,6 +83,7 @@ function App() {
 		{ icon: Coins, label: "Ethereum Wallet", path: "/worker/eth-wallet" },
 		{ icon: DollarSign, label: "USDT Wallet", path: "/worker/usdt-wallet" },
 		{ icon: ArrowUpDown, label: "Buy/Sell", path: "/worker/trade" },
+		{ icon: PiggyBank, label: "Fund", path: "/worker/fund" },
 		{ icon: BanknoteIcon, label: "Withdraw", path: "/worker/withdraw" },
 		{ icon: History, label: "Transactions", path: "/worker/transactions" },
 		// { icon: Settings, label: "Settings", path: "/worker/settings" },
@@ -115,6 +118,7 @@ function App() {
 					<Route path="btc-wallet" element={<BTCWallet />} />
 					<Route path="eth-wallet" element={<ETHWallet />} />
 					<Route path="usdt-wallet" element={<USDTWallet />} />
+					<Route path="fund" element={<FundPage />} />
 					<Route path="withdraw" element={<WithdrawPage />} />
 					<Route path="trade" element={<WorkerTrade />} />
 					<Route path="transactions" element={<WorkerTransactions />} />
