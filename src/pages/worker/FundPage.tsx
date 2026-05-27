@@ -54,7 +54,8 @@ export default function FundPage() {
         body: JSON.stringify({
           quidaxSubAccountId: user?.quidaxSubAccountId,
           amount: equivalentAmount || formData.amount,
-          currency: formData.currency
+          currency: formData.currency,
+          naira: formData.amount,
         }),
       });
 
