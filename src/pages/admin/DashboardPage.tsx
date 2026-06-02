@@ -16,8 +16,10 @@ import { useTransactionTrend } from "../../hooks/useTransactionTrend";
 import { TransactionTrendChart } from "../../components/TransactionTrendChart";
 import { CryptoDistributionChart } from "../../components/CryptoDistributionChart";
 
-const formatNumber = (value: number, decimals: number = 2): string => {
-	return value.toFixed(decimals);
+const formatNaira = (value: number): string => {
+	if (value >= 1_000_000) return `₦${(value / 1_000_000).toFixed(2)}M`;
+	if (value >= 1_000)     return `₦${(value / 1_000).toFixed(1)}K`;
+	return `₦${value.toLocaleString('en-NG', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
 };
 
 export default function AdminDashboardPage() {
@@ -44,10 +46,9 @@ export default function AdminDashboardPage() {
 	const calculateVolume = useMemo(
 		() => (transactions: any[]) => {
 			return (
-				transactions?.reduce(
-					(sum, tx) => sum + parseFloat(tx.naira || "0"),
-					0
-				) || 0
+				transactions
+					?.filter((tx) => tx.type === "buy" || tx.type === "sell")
+					.reduce((sum, tx) => sum + parseFloat(tx.naira || "0"), 0) || 0
 			);
 		},
 		[]
@@ -106,7 +107,7 @@ export default function AdminDashboardPage() {
 								<div className="flex justify-between text-sm">
 									<span className="text-gray-400">Volume:</span>
 									<span className="text-soft-white font-medium">
-										₦{(dailyVolume / 1000000).toFixed(1)}M
+										{formatNaira(dailyVolume)}
 									</span>
 								</div>
 								<div className="flex justify-between text-sm">
@@ -180,13 +181,13 @@ export default function AdminDashboardPage() {
 								<div className="flex justify-between text-sm">
 									<span className="text-gray-400">Volume:</span>
 									<span className="text-soft-white font-medium">
-										₦{(weeklyVolume / 1000000).toFixed(1)}M
+										{formatNaira(weeklyVolume)}
 									</span>
 								</div>
 								<div className="flex justify-between text-sm">
 									<span className="text-gray-400">Daily average:</span>
 									<span className="text-soft-white font-medium">
-										{Math.round(weeklyVolume / 7)} txns
+										{Math.round((stats?.weeklyTransactions?.length || 0) / 7)} txns
 									</span>
 								</div>
 								<div className="w-full bg-medium-gray rounded-full h-2">
@@ -249,13 +250,13 @@ export default function AdminDashboardPage() {
 								<div className="flex justify-between text-sm">
 									<span className="text-gray-400">Volume:</span>
 									<span className="text-soft-white font-medium">
-										₦{(monthlyVolume / 1000000).toFixed(1)}M
+										{formatNaira(monthlyVolume)}
 									</span>
 								</div>
 								<div className="flex justify-between text-sm">
 									<span className="text-gray-400">Daily average:</span>
 									<span className="text-soft-white font-medium">
-										{Math.round(monthlyVolume / 30)} txns
+										{Math.round((stats?.monthlyTransactions?.length || 0) / 30)} txns
 									</span>
 								</div>
 								<div className="w-full bg-medium-gray rounded-full h-2">
@@ -307,7 +308,7 @@ export default function AdminDashboardPage() {
 								Bitcoin Volume
 							</p>
 							<p className="text-2xl font-bold text-soft-white">
-								₦{((volumeData?.btc?.total || 0) / 1000000).toFixed(6)}M
+								{formatNaira(volumeData?.btc?.total || 0)}
 							</p>
 							<p className="text-xs text-gray-400 mt-1">
 								{(volumeData?.btc?.volume || 0).toFixed(8)} BTC traded
@@ -332,7 +333,7 @@ export default function AdminDashboardPage() {
 								Ethereum Volume
 							</p>
 							<p className="text-2xl font-bold text-soft-white">
-								₦{((volumeData?.eth?.total || 0) / 1000000).toFixed(6)}M
+								{formatNaira(volumeData?.eth?.total || 0)}
 							</p>
 							<p className="text-xs text-gray-400 mt-1">
 								{(volumeData?.eth?.volume || 0).toFixed(6)} ETH traded
@@ -355,7 +356,7 @@ export default function AdminDashboardPage() {
 						<div>
 							<p className="text-sm font-medium text-gray-400">USDT Volume</p>
 							<p className="text-2xl font-bold text-soft-white">
-								₦{((volumeData?.usdt?.total || 0) / 1000000).toFixed(6)}M
+								{formatNaira(volumeData?.usdt?.total || 0)}
 							</p>
 							<p className="text-xs text-gray-400 mt-1">
 								{(volumeData?.usdt?.volume || 0).toLocaleString()} USDT traded
@@ -402,7 +403,7 @@ export default function AdminDashboardPage() {
 					) : (
 						<div>
 							<p className="text-sm font-medium text-gray-400">Total Volume</p>
-							<p className="text-3xl font-bold text-soft-white">₦{formatNumber(totalVolume / 1000000, 6)}M</p>
+							<p className="text-3xl font-bold text-soft-white">{formatNaira(totalVolume)}</p>
 							<p className="text-sm text-metallic-gold mt-1">All cryptocurrencies combined</p>
 						</div>
 					)}
@@ -454,8 +455,8 @@ export default function AdminDashboardPage() {
 								stats?.monthlyTransactions?.slice(0, 10).map((tx, index) => (
 									<tr key={index}>
 										<td className="px-6 py-4 whitespace-nowrap text-sm text-soft-white">
-											{tx.user?.name ||
-												tx.user?.email ||
+											{tx.wallet?.user?.name ||
+												tx.wallet?.user?.email ||
 												`User ${tx.id || index + 1}`}
 										</td>
 										<td className="px-6 py-4 whitespace-nowrap text-sm text-soft-white">
