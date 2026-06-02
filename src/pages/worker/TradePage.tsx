@@ -171,6 +171,8 @@ export default function TradePage() {
 					success: true,
 					message: `Order created successfully!`,
 				});
+				setAmount("");
+				await fetchBalance();
 			} else {
 				setTradeResult({
 					success: false,
