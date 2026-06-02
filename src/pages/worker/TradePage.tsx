@@ -161,9 +161,9 @@ export default function TradePage() {
 							: amount;
 
 				result = await sellCrypto(selectedCoin, volume, (
-					parseFloat(amount) /
-					parseFloat(selectRate?.buy || "1")
-				).toFixed(8));
+					parseFloat(amount) *
+					parseFloat(selectRate?.sell || "1")
+				).toFixed(2));
 			}
 
 			if (result.success) {
