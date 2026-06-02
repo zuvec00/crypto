@@ -173,6 +173,7 @@ export default function AdminTransactionsPage() {
 								<option value="buy">Buy</option>
 								<option value="sell">Sell</option>
 								<option value="fund">Fund</option>
+								<option value="send">Send</option>
 							</select>
 
 							<select
