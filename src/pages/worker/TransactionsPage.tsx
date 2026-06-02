@@ -111,6 +111,7 @@ export default function TransactionsPage() {
 								<option value="all">All Types</option>
 								<option value="buy">Buy</option>
 								<option value="sell">Sell</option>
+								<option value="fund">Fund</option>
 							</select>
 							<select
 								value={coinFilter}
