@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { ToggleLeft, ToggleRight, Wallet } from 'lucide-react';
+import { ToggleLeft, ToggleRight } from 'lucide-react';
 
 interface UserRowProps {
   user: any;
@@ -7,10 +7,9 @@ interface UserRowProps {
   isHidden: boolean;
   onToggleStatus: (userId: string) => void;
   onToggleVisibility: () => void;
-  onFund: () => void;
 }
 
-export const UserRow = memo(function UserRow({ user, toggleLoading, isHidden, onToggleStatus, onToggleVisibility, onFund }: UserRowProps) {
+export const UserRow = memo(function UserRow({ user, toggleLoading, isHidden, onToggleStatus, onToggleVisibility }: UserRowProps) {
   return (
     <>
       <tr className="hover:bg-medium-gray transition-colors">
@@ -56,15 +55,6 @@ export const UserRow = memo(function UserRow({ user, toggleLoading, isHidden, on
               )}
             </button>
           </div>
-        </td>
-        <td className="px-6 py-4 whitespace-nowrap">
-          <button
-            onClick={onFund}
-            className="flex items-center space-x-1 px-3 py-1.5 bg-metallic-gold text-primary-black rounded-lg hover:bg-gold-hover transition-colors text-sm font-medium"
-          >
-            <Wallet className="h-4 w-4" />
-            <span>Fund</span>
-          </button>
         </td>
       </tr>
 

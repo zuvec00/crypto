@@ -272,11 +272,15 @@ export default function WalletsPage() {
       <div className="bg-dark-gray p-6 rounded-xl border border-medium-gray">
         <h3 className="text-lg font-semibold text-soft-white mb-4">Wallet Actions</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <button className="flex items-center justify-center p-4 border border-light-gray rounded-lg hover:border-metallic-gold hover:bg-metallic-gold hover:bg-opacity-10 transition-colors">
+          <button
+            onClick={() => navigate('/worker/fund')}
+            className="flex items-center justify-center p-4 border border-light-gray rounded-lg hover:border-metallic-gold hover:bg-metallic-gold hover:bg-opacity-10 transition-colors">
             <TrendingUp className="h-5 w-5 mr-2 text-metallic-gold" />
             <span className="font-medium text-soft-white">Deposit</span>
           </button>
-          <button className="flex items-center justify-center p-4 border border-light-gray rounded-lg hover:border-gray-400 hover:bg-medium-gray transition-colors">
+          <button
+            onClick={() => navigate('/worker/withdraw')}
+            className="flex items-center justify-center p-4 border border-light-gray rounded-lg hover:border-gray-400 hover:bg-medium-gray transition-colors">
             <TrendingDown className="h-5 w-5 mr-2 text-gray-400" />
             <span className="font-medium text-soft-white">Withdraw</span>
           </button>

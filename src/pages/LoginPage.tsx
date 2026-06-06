@@ -4,8 +4,6 @@ import {
 	Mail,
 	Eye,
 	EyeOff,
-	Shield,
-	CheckCircle,
 	AlertCircle,
 } from "lucide-react";
 import { useAuthStore } from "../store/authStore";

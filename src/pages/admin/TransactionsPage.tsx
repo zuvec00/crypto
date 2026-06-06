@@ -172,6 +172,8 @@ export default function AdminTransactionsPage() {
 								<option value="all">All Types</option>
 								<option value="buy">Buy</option>
 								<option value="sell">Sell</option>
+								<option value="fund">Fund</option>
+								<option value="send">Send</option>
 							</select>
 
 							<select
@@ -299,12 +301,12 @@ export default function AdminTransactionsPage() {
 										<td className="px-6 py-4 whitespace-nowrap">
 											<div className="flex items-center">
 												<div
-													className={`h-8 w-8 rounded-full flex items-center justify-center mr-3 ${tx.type === "buy"
+													className={`h-8 w-8 rounded-full flex items-center justify-center mr-3 ${tx.type === "buy" || tx.type === "fund"
 														? "bg-metallic-gold bg-opacity-20"
 														: "bg-red-500 bg-opacity-20"
 														}`}
 												>
-													{tx.type === "buy" ? (
+													{tx.type === "buy" || tx.type === "fund" ? (
 														<TrendingUp className="h-4 w-4 text-metallic-gold" />
 													) : (
 														<TrendingDown className="h-4 w-4 text-red-400" />

@@ -28,7 +28,7 @@ export default function TradePage() {
 		countdown: number;
 	} | null>(null);
 
-	const { rates, loading: ratesLoading, error: ratesError } = useRates();
+	const { rates, loading: ratesLoading, error: ratesError, refetch: refetchRates } = useRates();
 	const {
 		balances,
 		loading: balanceLoading,
@@ -161,9 +161,9 @@ export default function TradePage() {
 							: amount;
 
 				result = await sellCrypto(selectedCoin, volume, (
-					parseFloat(amount) /
-					parseFloat(selectRate?.buy || "1")
-				).toFixed(8));
+					parseFloat(amount) *
+					parseFloat(selectRate?.sell || "1")
+				).toFixed(2));
 			}
 
 			if (result.success) {
@@ -171,6 +171,8 @@ export default function TradePage() {
 					success: true,
 					message: `Order created successfully!`,
 				});
+				setAmount("");
+				await fetchBalance();
 			} else {
 				setTradeResult({
 					success: false,
@@ -331,6 +333,7 @@ export default function TradePage() {
 								type="number"
 								value={amount}
 								onChange={(e) => setAmount(e.target.value)}
+								onFocus={() => refetchRates()}
 								className="w-full p-3 bg-medium-gray border border-light-gray rounded-lg focus:ring-2 focus:ring-metallic-gold focus:border-transparent text-soft-white placeholder-gray-500"
 								placeholder={`Enter amount in ${tradeType === "buy" ? "NGN" : selectedCoin
 									}`}
@@ -342,6 +345,12 @@ export default function TradePage() {
 								<p className="text-sm text-gray-400 mb-2">
 									Transaction Summary:
 								</p>
+								<div className="flex items-start space-x-2 p-2 bg-yellow-500 bg-opacity-10 border border-yellow-500 border-opacity-30 rounded-lg">
+									<span className="text-yellow-400 text-xs mt-0.5">⚠</span>
+									<p className="text-xs text-yellow-400">
+										Estimated values based on current rates. Final amounts are determined at execution and may differ slightly.
+									</p>
+								</div>
 								{tradeType === "buy" ? (
 									<>
 										<div className="flex justify-between items-center">
@@ -536,6 +545,9 @@ export default function TradePage() {
 									</div>
 								))
 							)}
+							<p className="text-xs text-gray-500 pt-2 border-t border-medium-gray">
+								Rates are indicative and updated every 60s. Actual execution price may vary.
+							</p>
 						</div>
 					</div>
 
