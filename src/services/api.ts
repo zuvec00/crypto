@@ -425,6 +425,7 @@ class ApiService {
       transaction_note: data.transaction_note || "Crypto withdrawal",
       narration:
         data.narration || `Send ${data.amount} ${data.currency.toUpperCase()}`,
+      ...(data.network && { network: data.network }),
     };
 
     const response = await fetch(`${API_BASE_URL}/trade/send_crypto`, {

@@ -7,16 +7,29 @@ import { useETHWallet } from '../../hooks/useETHWallet';
 import { useNGNWallet } from '../../hooks/useNGNWallet';
 import { useUSDTWallet } from '../../hooks/useUSDTWallet';
 import { useTransactions } from '../../hooks/useTransactions';
+import { useRates } from '../../hooks/useRates';
+import { useWebSocket } from '../../hooks/useWebSocket';
 
 export default function DashboardPage() {
   const { user } = useAuthStore();
   const navigate = useNavigate();
   const [showBalances, setShowBalances] = useState(true);
-  const { wallet: btcWallet, loading: btcLoading } = useBTCWallet();
-  const { wallet: ethWallet, loading: ethLoading } = useETHWallet();
-  const { wallet: ngnWallet, loading: ngnLoading } = useNGNWallet();
-  const { wallet: usdtWallet, loading: usdtLoading } = useUSDTWallet();
-  const { trasactions, loading: transactionsLoading } = useTransactions();
+  const { wallet: btcWallet, loading: btcLoading, refetch: refetchBTC } = useBTCWallet();
+  const { wallet: ethWallet, loading: ethLoading, refetch: refetchETH } = useETHWallet();
+  const { wallet: ngnWallet, loading: ngnLoading, refetch: refetchNGN } = useNGNWallet();
+  const { wallet: usdtWallet, loading: usdtLoading, refetch: refetchUSDT } = useUSDTWallet();
+  const { trasactions, loading: transactionsLoading, refetch: refetchTransactions } = useTransactions();
+  const { rates } = useRates();
+
+  useWebSocket({
+    onBalanceUpdate: (coin) => {
+      if (coin === 'btc') refetchBTC();
+      else if (coin === 'eth') refetchETH();
+      else if (coin === 'usdt') refetchUSDT();
+      else if (coin === 'ngn') refetchNGN();
+      refetchTransactions();
+    },
+  });
 
   const recentTransactions = trasactions.slice(0, 5);
 
@@ -27,11 +40,15 @@ export default function DashboardPage() {
     return <Activity className="h-5 w-5 text-gray-400" />;
   };
 
+  const btcRate = parseFloat(rates.find(r => r.marker === 'btcngn')?.sell || '0');
+  const ethRate = parseFloat(rates.find(r => r.marker === 'ethngn')?.sell || '0');
+  const usdtRate = parseFloat(rates.find(r => r.marker === 'usdtngn')?.sell || '0');
+
   const totalPortfolioValue = (
     parseFloat(ngnWallet?.balance || '0') +
-    parseFloat(btcWallet?.convertedBalance || '0') +
-    parseFloat(ethWallet?.convertedBalance || '0') +
-    parseFloat(usdtWallet?.convertedBalance || '0')
+    parseFloat(btcWallet?.balance || '0') * btcRate +
+    parseFloat(ethWallet?.balance || '0') * ethRate +
+    parseFloat(usdtWallet?.balance || '0') * usdtRate
   );
 
   return (
@@ -223,12 +240,12 @@ export default function DashboardPage() {
                       <div className="flex items-center">
                         <div
                           className={`h-8 w-8 rounded-full flex items-center justify-center mr-3 ${
-                            tx.side === "buy"
+                            tx.side === "buy" || tx.type === "buy" || tx.type === "fund"
                               ? "bg-metallic-gold bg-opacity-20"
                               : "bg-red-500 bg-opacity-20"
                           }`}
                         >
-                          {tx.side === "buy" ? (
+                          {tx.side === "buy" || tx.type === "buy" || tx.type === "fund" ? (
                             <TrendingUp className="h-4 w-4 text-metallic-gold" />
                           ) : (
                             <TrendingDown className="h-4 w-4 text-red-400" />
@@ -236,7 +253,7 @@ export default function DashboardPage() {
                         </div>
                         <div>
                           <p className="font-medium text-soft-white capitalize">
-                            {tx.side} {tx.market?.base_unit?.toUpperCase()}
+                            {tx.type || tx.side} {(tx.coin || tx.market?.base_unit)?.toUpperCase()}
                           </p>
                           <p className="text-sm text-gray-400">
                             #{tx.id?.toString().slice(0, 8)}

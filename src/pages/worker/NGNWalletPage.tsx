@@ -9,7 +9,7 @@ export default function NGNWalletPage() {
   const { wallet, loading: walletLoading, error: walletError, refetch } = useNGNWallet();
   const { trasactions, loading: transactionsLoading } = useTransactions();
 
-  const ngnTransactions = trasactions.filter(tx => 
+  const ngnTransactions = trasactions.filter(tx =>
     tx.market?.id?.includes('ngn') || tx.market?.includes('ngn')
   );
 
@@ -54,17 +54,21 @@ export default function NGNWalletPage() {
                 <p className="text-sm text-yellow-400 mt-1">Locked: ₦{formatNGNAmount(wallet.lockedBalance)}</p>
               )}
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <button className="flex items-center justify-center p-4 bg-metallic-gold text-primary-black rounded-lg hover:bg-gold-hover transition-all">
+              <button
+                onClick={() => navigate('/worker/fund')}
+                className="flex items-center justify-center p-4 bg-metallic-gold text-primary-black rounded-lg hover:bg-gold-hover transition-all">
                 <TrendingUp className="h-5 w-5 mr-2" />
                 Deposit NGN
               </button>
-              <button className="flex items-center justify-center p-4 border border-light-gray rounded-lg hover:border-metallic-gold hover:bg-metallic-gold hover:bg-opacity-10 transition-colors text-soft-white">
+              <button
+                onClick={() => navigate('/worker/withdraw')}
+                className="flex items-center justify-center p-4 border border-light-gray rounded-lg hover:border-metallic-gold hover:bg-metallic-gold hover:bg-opacity-10 transition-colors text-soft-white">
                 <TrendingDown className="h-5 w-5 mr-2" />
                 Withdraw NGN
               </button>
-              <button 
+              <button
                 onClick={() => navigate('/worker/trade')}
                 className="flex items-center justify-center p-4 bg-electric-blue text-soft-white rounded-lg hover:bg-blue-hover transition-all"
               >
@@ -102,11 +106,10 @@ export default function NGNWalletPage() {
                     </div>
                     <div className="text-right">
                       <p className="font-medium text-soft-white">₦{formatNGNAmount(tx.funds || '0')}</p>
-                      <span className={`text-xs px-2 py-1 rounded-full ${
-                        tx.state === 'done' ? 'bg-green-500 bg-opacity-20 text-green-400' :
-                        tx.state === 'wait' ? 'bg-yellow-500 bg-opacity-20 text-yellow-400' :
-                        'bg-red-500 bg-opacity-20 text-red-400'
-                      }`}>
+                      <span className={`text-xs px-2 py-1 rounded-full ${tx.state === 'done' ? 'bg-green-500 bg-opacity-20 text-green-400' :
+                          tx.state === 'wait' ? 'bg-yellow-500 bg-opacity-20 text-yellow-400' :
+                            'bg-red-500 bg-opacity-20 text-red-400'
+                        }`}>
                         {tx.state}
                       </span>
                     </div>
