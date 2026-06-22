@@ -441,6 +441,20 @@ class ApiService {
 
     return response.json();
   }
+
+  async getBanks(): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/bank`, {
+      method: "GET",
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const error: ApiError = await response.json();
+      throw new Error(error.message || "Failed to get banks");
+    }
+
+    return response.json();
+  }
 }
 
 export const apiService = new ApiService();
