@@ -1,3 +1,4 @@
+//THIS IS JUST A TEST< FOR KYC SETUP, DO NOT RELY ON ANY DETAIL HERE FOR NOW
 import React, { useState } from 'react';
 import {
   Send,
@@ -8,7 +9,8 @@ import {
   Bitcoin,
   Coins,
   Loader2,
-  Search
+  Search,
+  Zap
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useWalletBalances } from '../../hooks/useWalletBalances';
@@ -16,6 +18,25 @@ import { useRates } from '../../hooks/useRates';
 import { useWithdraw } from '../../hooks/useWithdraw';
 import banksData from '../../utils/banks.json';
 import { apiService } from '../../services/api';
+declare global {
+  interface Window {
+    ramp: {
+      initialize: (config: {
+        public_key: string;
+        reference: string;
+        from_currency: string;
+        to_currency: string;
+        from_amount: string;
+        mode: string;
+        network: string;
+        enableWalletConnect: boolean;
+        onClose?: (ref: string) => void;
+        onReceiveWalletDetails?: (details: { amount: string; network: string; walletAddress: string }) => void;
+        onSuccess?: (transaction: any) => void;
+      }) => void;
+    };
+  }
+}
 
 export default function WithdrawPage() {
   const navigate = useNavigate();
@@ -23,7 +44,7 @@ export default function WithdrawPage() {
   const { rates, loading: ratesLoading } = useRates();
   const { withdrawToBank, loading: isWithdrawing } = useWithdraw();
   const [withdrawAmount, setWithdrawAmount] = useState('');
-  const [withdrawCurrency, setWithdrawCurrency] = useState('BTC');
+  const [withdrawCurrency, setWithdrawCurrency] = useState('USDT');
   const [bankDetails, setBankDetails] = useState({
     accountNumber: '',
     bankName: '',
@@ -33,6 +54,39 @@ export default function WithdrawPage() {
   const [showBankDropdown, setShowBankDropdown] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [verificationError, setVerificationError] = useState('');
+
+  const payWithRamp = () => {
+    if (!window.ramp) {
+      alert('Ramp widget not loaded. Please refresh the page.');
+      return;
+    }
+
+    const cryptoBalance = balances.find(b => b.currency.toLowerCase() === withdrawCurrency.toLowerCase())?.balance || 0;
+
+    window.ramp.initialize({
+      public_key: import.meta.env.VITE_RAMP_PUBLIC_KEY,
+      reference: `WD-${Date.now()}`,
+      from_currency: 'usdt',
+      to_currency: 'ngn',
+      //minimum is $2, anything below makes the widget fail
+      from_amount: '2.0',
+      mode: 'sell',
+      network: 'BEP20',
+      enableWalletConnect: false,
+      onClose: (ref) => {
+        console.log('Ramp closed:', ref);
+      },
+      onReceiveWalletDetails: (walletDetails) => {
+        console.log('Amount:', walletDetails.amount);
+        console.log('Network:', walletDetails.network);
+        console.log('Wallet Address:', walletDetails.walletAddress);
+      },
+      onSuccess: (transaction) => {
+        console.log('Transaction successful:', transaction);
+        alert('Withdrawal successful!');
+      }
+    });
+  };
 
   const filteredBanks = banksData.filter(bank =>
     bank.name.toLowerCase().includes(bankSearch.toLowerCase())
@@ -296,7 +350,7 @@ export default function WithdrawPage() {
                 <button
                   onClick={handleWithdraw}
                   disabled={isWithdrawing || !withdrawAmount || !bankDetails.accountNumber || !bankDetails.bankName || !bankDetails.accountName}
-                  className="w-full py-3 px-4 bg-electric-blue text-soft-white rounded-lg font-medium transition-all hover:bg-blue-hover disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                  className="w-full py-3 px-4 bg-electric-blue text-soft-white rounded-lg font-medium transition-all hover:bg-blue-hover disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center mb-3"
                 >
                   {isWithdrawing ? (
                     <>
@@ -309,6 +363,14 @@ export default function WithdrawPage() {
                       Submit Withdrawal Request
                     </>
                   )}
+                </button>
+
+                <button
+                  onClick={payWithRamp}
+                  className="w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-medium transition-all hover:from-purple-700 hover:to-pink-700 flex items-center justify-center"
+                >
+                  <Zap className="h-4 w-4 mr-2" />
+                  Instant Withdrawal with Ramp
                 </button>
               </div>
             </div>
