@@ -380,6 +380,49 @@ class ApiService {
     return response.json();
   }
 
+  async recordRampTransaction(payload: {
+    coin?: string;
+    amount?: string | number;
+    naira?: string | number;
+    reference?: string;
+    transactionId?: string;
+    status?: string;
+    mode?: string;
+    network?: string;
+    source?: string;
+    ngnAmount?: string | number;
+    bankDetails?: {
+      accountNumber: string;
+      bankName: string;
+      accountName: string;
+    };
+  }): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/trade/ramp/complete`, {
+      method: "POST",
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({
+        coin: payload.coin?.toLowerCase() || "usdt",
+        amount: payload.amount?.toString() || "0",
+        naira: payload.naira?.toString() || "0",
+        reference: payload.reference,
+        transaction_id: payload.transactionId,
+        status: payload.status || "completed",
+        mode: payload.mode || "sell",
+        network: payload.network,
+        source: payload.source || "ramp",
+        ngn_amount: payload.ngnAmount?.toString(),
+        bank_details: payload.bankDetails,
+      }),
+    });
+
+    if (!response.ok) {
+      const error: ApiError = await response.json();
+      throw new Error(error.message || "Failed to log Ramp transaction");
+    }
+
+    return response.json();
+  }
+
   async withdrawToBank(
     ngnAmount: number,
     currency: string,
@@ -404,6 +447,21 @@ class ApiService {
     if (!response.ok) {
       const error: ApiError = await response.json();
       throw new Error(error.message || "Failed to process withdrawal");
+    }
+
+    return response.json();
+  }
+
+  async swapToUsdt(currency: string, volume: string): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/trade/swap-to-usdt`, {
+      method: "POST",
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({ currency, volume }),
+    });
+
+    if (!response.ok) {
+      const error: ApiError = await response.json();
+      throw new Error(error.message || "Failed to convert to USDT");
     }
 
     return response.json();
