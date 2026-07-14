@@ -37,6 +37,7 @@ import ETHWallet from "./pages/worker/ETHWalletPage";
 import USDTWallet from "./pages/worker/USDTWalletPage";
 import WithdrawPage from "./pages/worker/WithdrawPage";
 import FundPage from "./pages/worker/FundPage";
+import WorkerSettings from "./pages/worker/SettingsPage";
 
 // Admin Pages
 import AdminDashboard from "./pages/admin/DashboardPage";
@@ -86,7 +87,7 @@ function App() {
 		{ icon: PiggyBank, label: "Fund", path: "/worker/fund" },
 		{ icon: BanknoteIcon, label: "Withdraw", path: "/worker/withdraw" },
 		{ icon: History, label: "Transactions", path: "/worker/transactions" },
-		// { icon: Settings, label: "Settings", path: "/worker/settings" },
+		{ icon: Settings, label: "Settings", path: "/worker/settings" },
 	];
 
 	const adminMenuItems = [
@@ -94,8 +95,6 @@ function App() {
 		{ icon: Users, label: "Users", path: "/admin/users" },
 		{ icon: TrendingUp, label: "Transactions", path: "/admin/transactions" },
 		{ icon: CreditCard, label: 'Withdrawals', path: '/admin/withdrawals' },
-		{ icon: Wallet, label: "Wallets", path: "/admin/wallets" },
-		{ icon: Settings, label: "Settings", path: "/admin/settings" },
 	];
 
 	return (
@@ -122,14 +121,7 @@ function App() {
 					<Route path="withdraw" element={<WithdrawPage />} />
 					<Route path="trade" element={<WorkerTrade />} />
 					<Route path="transactions" element={<WorkerTransactions />} />
-					{/* <Route
-						path="settings"
-						element={
-							<div className="text-center py-12 text-gray-400">
-								Settings coming soon
-							</div>
-						}
-					/> */}
+					<Route path="settings" element={<WorkerSettings />} />
 				</Route>
 
 				{/* Admin Routes */}
@@ -145,22 +137,6 @@ function App() {
 					<Route path="users" element={<AdminUsers />} />
 					<Route path="transactions" element={<AdminTransactions />} />
 					<Route path="withdrawals" element={<AdminWithdrawals />} />
-					<Route
-						path="wallets"
-						element={
-							<div className="text-center py-12 text-gray-400">
-								Wallets coming soon
-							</div>
-						}
-					/>
-					<Route
-						path="settings"
-						element={
-							<div className="text-center py-12 text-gray-400">
-								Settings coming soon
-							</div>
-						}
-					/>
 				</Route>
 
 				<Route path="/" element={<Navigate to="/login" replace />} />

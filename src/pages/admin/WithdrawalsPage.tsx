@@ -1,10 +1,21 @@
 import { useState } from 'react';
-import { Clock, CreditCard, CheckCircle, XCircle } from 'lucide-react';
+import { Clock, CreditCard, CheckCircle, XCircle, Copy, Check } from 'lucide-react';
 import { useWithdrawalRequests } from '../../hooks/useWithdrawalRequests';
 
 export default function AdminWithdrawals() {
   const { requests, loading, error, markAsCompleted, markAsFailed } = useWithdrawalRequests();
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const copyAccountNumber = async (id: string, accountNumber: string) => {
+    try {
+      await navigator.clipboard.writeText(accountNumber);
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch {
+      // Clipboard unavailable (e.g. non-HTTPS); the number is still selectable text
+    }
+  };
 
   const handleMarkCompleted = async (id: string) => {
     try {
@@ -128,9 +139,34 @@ export default function AdminWithdrawals() {
                       </span>
                     </td>
                     <td className="px-6 py-4 max-w-xs">
-                      <p className="text-xs text-gray-400 whitespace-normal break-words">
-                        {request.transactionNote || '—'}
-                      </p>
+                      {request.bankAccountNumber ? (
+                        <div>
+                          <p className="text-sm font-medium text-soft-white">
+                            {request.bankAccountName}
+                          </p>
+                          <div className="flex items-center space-x-2">
+                            <p className="text-sm text-metallic-gold font-mono">
+                              {request.bankAccountNumber}
+                            </p>
+                            <button
+                              onClick={() => copyAccountNumber(request.id, request.bankAccountNumber!)}
+                              className="text-gray-400 hover:text-metallic-gold transition-colors"
+                              title="Copy account number"
+                            >
+                              {copiedId === request.id ? (
+                                <Check className="h-3.5 w-3.5 text-green-400" />
+                              ) : (
+                                <Copy className="h-3.5 w-3.5" />
+                              )}
+                            </button>
+                          </div>
+                          <p className="text-xs text-gray-400">{request.bankName}</p>
+                        </div>
+                      ) : (
+                        <p className="text-xs text-gray-400 whitespace-normal break-words">
+                          {request.transactionNote || '—'}
+                        </p>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusBadge(request.status)}`}>

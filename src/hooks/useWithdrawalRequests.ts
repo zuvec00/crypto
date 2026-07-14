@@ -13,6 +13,9 @@ export interface WithdrawalRequest {
   transferId: string;
   status: "pending" | "completed" | "failed";
   transactionNote: string;
+  bankAccountNumber?: string;
+  bankName?: string;
+  bankAccountName?: string;
   createdAt: string;
   updatedAt: string;
 }

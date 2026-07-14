@@ -2,12 +2,51 @@ import { Coins, TrendingUp, TrendingDown, ArrowUpDown, Copy, Loader2, AlertCircl
 import { useNavigate } from 'react-router-dom';
 import { useETHWallet } from '../../hooks/useETHWallet';
 import { useTransactions } from '../../hooks/useTransactions';
-import { useEffect } from 'react';
+import { useState } from 'react';
+import SendCryptoModal from '../../components/SendCryptoModal';
+import Toast from '../../components/Toast';
+import { apiService } from '../../services/api';
 
 export default function ETHWalletPage() {
   const navigate = useNavigate();
   const { wallet, loading: walletLoading, error: walletError, refetch, createWallet } = useETHWallet();
-  const { trasactions, loading: transactionsLoading } = useTransactions();
+  const { trasactions, loading: transactionsLoading, refetch: refetchTransactions } = useTransactions();
+  const [sendModalOpen, setSendModalOpen] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+  const handleSendETH = async (data: {
+    network?: string;
+    address: string;
+    amount: string;
+    note?: string;
+  }) => {
+    try {
+      const reference = `ETH-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+
+      await apiService.withdrawCrypto({
+        currency: 'eth',
+        amount: data.amount,
+        fund_uid: data.address,
+        transaction_note: data.note,
+        reference: reference,
+        narration: data.note || `Send ${data.amount} ETH`,
+      });
+
+      setToast({ message: 'ETH sent successfully!', type: 'success' });
+
+      // Refetch wallet and transactions after a short delay
+      setTimeout(() => {
+        refetch();
+        refetchTransactions();
+      }, 1000);
+
+      return { success: true };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to send ETH';
+      setToast({ message: errorMessage, type: 'error' });
+      return { success: false, error: errorMessage };
+    }
+  };
 
   const ethTransactions = trasactions.filter(
     (tx) => tx.coin === "eth" || tx.market?.base_unit === "eth"
@@ -70,6 +109,22 @@ export default function ETHWalletPage() {
 
   return (
     <div className="space-y-8">
+      <SendCryptoModal
+        currency="eth"
+        isOpen={sendModalOpen}
+        onClose={() => setSendModalOpen(false)}
+        onSend={handleSendETH}
+        availableBalance={wallet?.balance || '0'}
+      />
+
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-soft-white mb-2">Ethereum Wallet</h1>
@@ -169,7 +224,10 @@ export default function ETHWalletPage() {
                 <TrendingUp className="h-5 w-5 mr-2" />
                 Receive ETH
               </button>
-              <button className="flex items-center justify-center p-4 bg-medium-gray text-soft-white rounded-lg hover:bg-light-gray transition-colors">
+              <button
+                onClick={() => setSendModalOpen(true)}
+                className="flex items-center justify-center p-4 bg-medium-gray text-soft-white rounded-lg hover:bg-light-gray transition-colors"
+              >
                 <TrendingDown className="h-5 w-5 mr-2" />
                 Send ETH
               </button>
@@ -227,12 +285,12 @@ export default function ETHWalletPage() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div
-                          className={`h-8 w-8 rounded-full flex items-center justify-center mr-3 ${tx.side === "buy" || tx.type === "buy" || tx.type === "fund"
+                          className={`h-8 w-8 rounded-full flex items-center justify-center mr-3 ${tx.side === "buy" || tx.type === "buy" || tx.type === "fund" || tx.type === "deposit"
                             ? "bg-metallic-gold bg-opacity-20"
                             : "bg-red-500 bg-opacity-20"
                             }`}
                         >
-                          {tx.side === "buy" || tx.type === "buy" || tx.type === "fund" ? (
+                          {tx.side === "buy" || tx.type === "buy" || tx.type === "fund" || tx.type === "deposit" ? (
                             <TrendingUp className="h-4 w-4 text-metallic-gold" />
                           ) : (
                             <TrendingDown className="h-4 w-4 text-red-400" />

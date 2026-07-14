@@ -240,12 +240,12 @@ export default function DashboardPage() {
                       <div className="flex items-center">
                         <div
                           className={`h-8 w-8 rounded-full flex items-center justify-center mr-3 ${
-                            tx.side === "buy" || tx.type === "buy" || tx.type === "fund"
+                            tx.side === "buy" || tx.type === "buy" || tx.type === "fund" || tx.type === "deposit"
                               ? "bg-metallic-gold bg-opacity-20"
                               : "bg-red-500 bg-opacity-20"
                           }`}
                         >
-                          {tx.side === "buy" || tx.type === "buy" || tx.type === "fund" ? (
+                          {tx.side === "buy" || tx.type === "buy" || tx.type === "fund" || tx.type === "deposit" ? (
                             <TrendingUp className="h-4 w-4 text-metallic-gold" />
                           ) : (
                             <TrendingDown className="h-4 w-4 text-red-400" />
