@@ -29,11 +29,11 @@ export default function Layout({ menuItems, title }: LayoutProps) {
 			)}
 
 			<div
-				className={`fixed inset-y-0 left-0 z-50 w-64 bg-dark-gray border-r border-medium-gray transform ${
+				className={`fixed inset-y-0 left-0 z-50 w-64 flex flex-col bg-dark-gray border-r border-medium-gray transform ${
 					sidebarOpen ? "translate-x-0" : "-translate-x-full"
-				} transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static lg:inset-0`}
+				} transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static lg:inset-0 lg:h-full`}
 			>
-				<div className="flex items-center justify-between h-16 px-6 border-b border-medium-gray">
+				<div className="flex items-center justify-between h-16 px-6 border-b border-medium-gray flex-shrink-0">
 					<Logo size="md" />
 					<button
 						onClick={() => setSidebarOpen(false)}
@@ -43,7 +43,7 @@ export default function Layout({ menuItems, title }: LayoutProps) {
 					</button>
 				</div>
 
-				<nav className="flex-1 px-4 py-6 space-y-2">
+				<nav className="flex-1 overflow-y-auto px-4 py-6 space-y-2">
 					{menuItems.map((item) => {
 						const Icon = item.icon;
 						const isActive = location.pathname === item.path;
@@ -67,7 +67,7 @@ export default function Layout({ menuItems, title }: LayoutProps) {
 					})}
 				</nav>
 
-				<div className="p-4 border-t border-medium-gray">
+				<div className="p-4 border-t border-medium-gray flex-shrink-0">
 					<button
 						onClick={logout}
 						className="w-full flex items-center px-4 py-3 text-left text-red-400 hover:bg-red-900 hover:bg-opacity-20 rounded-lg transition-colors"

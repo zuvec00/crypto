@@ -1,24 +1,63 @@
 import React, { useState } from "react";
 import { X, Loader2, AlertCircle, Network } from "lucide-react";
 
-interface SendUSDTModalProps {
+interface SendCryptoModalProps {
 	isOpen: boolean;
 	onClose: () => void;
 	onSend: (data: {
-		network: string;
+		network?: string;
 		address: string;
 		amount: string;
 		note?: string;
 	}) => Promise<{ success: boolean; error?: string }>;
 	availableBalance: string;
+	currency: "usdt" | "btc" | "eth";
 }
 
-export default function SendUSDTModal({
+const currencyMeta = {
+	usdt: { label: "USDT", networkName: "the selected network", decimals: 2, step: "0.01" },
+	btc: { label: "BTC", networkName: "Bitcoin", decimals: 8, step: "0.00000001" },
+	eth: { label: "ETH", networkName: "Ethereum", decimals: 8, step: "0.00000001" },
+} as const;
+
+// Network selection only applies to USDT; BTC and ETH each use their single native network
+const usdtNetworks = [
+	{
+		id: "trc20",
+		name: "TRC-20",
+		network: "Tron",
+		fee: "Low (~1 USDT)",
+		color: "text-red-400",
+		bgColor: "bg-red-500",
+	},
+	{
+		id: "erc20",
+		name: "ERC-20",
+		network: "Ethereum",
+		fee: "High (~$10-50)",
+		color: "text-electric-blue",
+		bgColor: "bg-electric-blue",
+	},
+	{
+		id: "bep20",
+		name: "BEP-20",
+		network: "BSC",
+		fee: "Medium (~$2-5)",
+		color: "text-yellow-400",
+		bgColor: "bg-yellow-500",
+	},
+];
+
+export default function SendCryptoModal({
 	isOpen,
 	onClose,
 	onSend,
 	availableBalance,
-}: SendUSDTModalProps) {
+	currency,
+}: SendCryptoModalProps) {
+	const meta = currencyMeta[currency];
+	const hasNetworks = currency === "usdt";
+
 	const [formData, setFormData] = useState({
 		network: "trc20",
 		address: "",
@@ -28,34 +67,11 @@ export default function SendUSDTModal({
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
-	const networks = [
-		{
-			id: "trc20",
-			name: "TRC-20",
-			network: "Tron",
-			fee: "Low (~1 USDT)",
-			color: "text-red-400",
-			bgColor: "bg-red-500",
-		},
-		{
-			id: "erc20",
-			name: "ERC-20",
-			network: "Ethereum",
-			fee: "High (~$10-50)",
-			color: "text-electric-blue",
-			bgColor: "bg-electric-blue",
-		},
-		{
-			id: "bep20",
-			name: "BEP-20",
-			network: "BSC",
-			fee: "Medium (~$2-5)",
-			color: "text-yellow-400",
-			bgColor: "bg-yellow-500",
-		},
-	];
-
-	const selectedNetwork = networks.find((n) => n.id === formData.network);
+	const selectedNetwork = usdtNetworks.find((n) => n.id === formData.network);
+	const addressLabel = hasNetworks ? selectedNetwork?.name : meta.networkName;
+	const addressPlaceholder = hasNetworks
+		? `Enter ${selectedNetwork?.network} address`
+		: `Enter ${meta.networkName} address`;
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -81,13 +97,16 @@ export default function SendUSDTModal({
 			return;
 		}
 
-		const result = await onSend(formData);
+		const result = await onSend({
+			...formData,
+			network: hasNetworks ? formData.network : undefined,
+		});
 
 		if (result.success) {
 			setFormData({ network: "trc20", address: "", amount: "", note: "" });
 			onClose();
 		} else {
-			setError(result.error || "Failed to send USDT");
+			setError(result.error || `Failed to send ${meta.label}`);
 		}
 
 		setLoading(false);
@@ -111,7 +130,9 @@ export default function SendUSDTModal({
 				>
 					<div className="p-6 border-b border-medium-gray flex-shrink-0">
 						<div className="flex items-center justify-between">
-							<h2 className="text-xl font-bold text-soft-white">Send USDT</h2>
+							<h2 className="text-xl font-bold text-soft-white">
+								Send {meta.label}
+							</h2>
 							<button
 								onClick={onClose}
 								className="text-gray-400 hover:text-soft-white transition-colors"
@@ -129,64 +150,67 @@ export default function SendUSDTModal({
 						<div className="p-4 bg-medium-gray rounded-lg">
 							<p className="text-sm text-gray-400 mb-1">Available Balance</p>
 							<p className="text-2xl font-bold text-soft-white">
-								{parseFloat(availableBalance).toFixed(2)} USDT
+								{parseFloat(availableBalance).toFixed(meta.decimals)}{" "}
+								{meta.label}
 							</p>
 						</div>
 
-						{/* Network Selection */}
-						<div>
-							<label className="block text-sm font-medium text-soft-white mb-3">
-								Select Network
-							</label>
-							<div className="grid grid-cols-1 gap-3">
-								{networks.map((network) => (
-									<button
-										key={network.id}
-										type="button"
-										onClick={() =>
-											setFormData({ ...formData, network: network.id })
-										}
-										className={`p-4 rounded-lg border-2 transition-all text-left ${
-											formData.network === network.id
-												? `border-${network.bgColor.replace(
-														"bg-",
-														""
-												  )} bg-opacity-10 ${network.bgColor}`
-												: "border-light-gray hover:border-medium-gray"
-										}`}
-									>
-										<div className="flex items-center justify-between">
-											<div className="flex items-center space-x-3">
-												<div
-													className={`h-10 w-10 ${network.bgColor} bg-opacity-20 rounded-full flex items-center justify-center`}
-												>
-													<Network className={`h-5 w-5 ${network.color}`} />
+						{/* Network Selection (USDT only) */}
+						{hasNetworks && (
+							<div>
+								<label className="block text-sm font-medium text-soft-white mb-3">
+									Select Network
+								</label>
+								<div className="grid grid-cols-1 gap-3">
+									{usdtNetworks.map((network) => (
+										<button
+											key={network.id}
+											type="button"
+											onClick={() =>
+												setFormData({ ...formData, network: network.id })
+											}
+											className={`p-4 rounded-lg border-2 transition-all text-left ${
+												formData.network === network.id
+													? `border-${network.bgColor.replace(
+															"bg-",
+															""
+													  )} bg-opacity-10 ${network.bgColor}`
+													: "border-light-gray hover:border-medium-gray"
+											}`}
+										>
+											<div className="flex items-center justify-between">
+												<div className="flex items-center space-x-3">
+													<div
+														className={`h-10 w-10 ${network.bgColor} bg-opacity-20 rounded-full flex items-center justify-center`}
+													>
+														<Network className={`h-5 w-5 ${network.color}`} />
+													</div>
+													<div>
+														<p className="font-semibold text-soft-white">
+															{network.name}
+														</p>
+														<p className="text-xs text-gray-400">
+															{network.network}
+														</p>
+													</div>
 												</div>
-												<div>
-													<p className="font-semibold text-soft-white">
-														{network.name}
-													</p>
-													<p className="text-xs text-gray-400">
-														{network.network}
+												<div className="text-right">
+													<p className="text-xs text-gray-400">Network Fee</p>
+													<p className={`text-sm font-medium ${network.color}`}>
+														{network.fee}
 													</p>
 												</div>
 											</div>
-											<div className="text-right">
-												<p className="text-xs text-gray-400">Network Fee</p>
-												<p className={`text-sm font-medium ${network.color}`}>
-													{network.fee}
-												</p>
-											</div>
-										</div>
-									</button>
-								))}
+										</button>
+									))}
+								</div>
 							</div>
-						</div>
+						)}
 
 						{/* Recipient Address */}
 						<div>
 							<label className="block text-sm font-medium text-soft-white mb-2">
-								Recipient Address ({selectedNetwork?.name})
+								Recipient Address ({addressLabel})
 							</label>
 							<input
 								type="text"
@@ -195,24 +219,26 @@ export default function SendUSDTModal({
 								onChange={(e) =>
 									setFormData({ ...formData, address: e.target.value })
 								}
-								placeholder={`Enter ${selectedNetwork?.network} address`}
+								placeholder={addressPlaceholder}
 								className="w-full p-3 bg-medium-gray border border-light-gray rounded-lg focus:ring-2 focus:ring-metallic-gold focus:border-transparent text-soft-white placeholder-gray-500 font-mono text-sm"
 							/>
 							<p className="text-xs text-gray-400 mt-1">
-								Make sure the address matches the selected network
+								{hasNetworks
+									? "Make sure the address matches the selected network"
+									: `Make sure this is a valid ${meta.networkName} address`}
 							</p>
 						</div>
 
 						{/* Amount */}
 						<div>
 							<label className="block text-sm font-medium text-soft-white mb-2">
-								Amount (USDT)
+								Amount ({meta.label})
 							</label>
 							<div className="relative">
 								<input
 									type="number"
 									required
-									step="0.01"
+									step={meta.step}
 									min="0"
 									value={formData.amount}
 									onChange={(e) =>
@@ -253,8 +279,9 @@ export default function SendUSDTModal({
 							<div className="text-sm text-yellow-200">
 								<p className="font-medium mb-1">Important</p>
 								<p className="text-yellow-300">
-									Double-check the recipient address and network. Transactions
-									cannot be reversed.
+									Double-check the recipient address
+									{hasNetworks ? " and network" : ""}. Transactions cannot be
+									reversed.
 								</p>
 							</div>
 						</div>
@@ -288,7 +315,7 @@ export default function SendUSDTModal({
 										Sending...
 									</>
 								) : (
-									"Send USDT"
+									`Send ${meta.label}`
 								)}
 							</button>
 						</div>

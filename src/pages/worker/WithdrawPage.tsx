@@ -61,10 +61,53 @@ export default function WithdrawPage() {
   const rampProcessing = rampStatus !== null;
   // Recipient details for the withdrawal currently in flight. Kept in a ref so the
   // message-listener effect (registered once on mount) always sees the latest values.
+  // Mirrored to localStorage so a page refresh mid-withdrawal doesn't lose the bank
+  // details before the withdrawal request is created for the admin.
   const pendingWithdrawalRef = useRef<{
     ngnAmount: number;
     bankDetails: { accountNumber: string; bankName: string; accountName: string };
   } | null>(null);
+
+  const PENDING_WITHDRAWAL_KEY = 'pending_withdrawal_v1';
+  const PENDING_WITHDRAWAL_MAX_AGE_MS = 60 * 60 * 1000; // stale after 1 hour
+
+  const savePendingWithdrawal = (pending: NonNullable<typeof pendingWithdrawalRef.current>) => {
+    pendingWithdrawalRef.current = pending;
+    try {
+      localStorage.setItem(PENDING_WITHDRAWAL_KEY, JSON.stringify({ ...pending, savedAt: Date.now() }));
+    } catch {
+      // Storage full/unavailable — the in-memory ref still covers the normal flow
+    }
+  };
+
+  const clearPendingWithdrawal = () => {
+    pendingWithdrawalRef.current = null;
+    localStorage.removeItem(PENDING_WITHDRAWAL_KEY);
+  };
+
+  // Restore an in-flight withdrawal after a refresh so a late Ramp success
+  // event can still create the admin withdrawal request with bank details
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(PENDING_WITHDRAWAL_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw);
+      if (
+        Date.now() - (saved?.savedAt ?? 0) < PENDING_WITHDRAWAL_MAX_AGE_MS &&
+        saved?.ngnAmount > 0 &&
+        saved?.bankDetails?.accountNumber
+      ) {
+        pendingWithdrawalRef.current = {
+          ngnAmount: saved.ngnAmount,
+          bankDetails: saved.bankDetails,
+        };
+      } else {
+        localStorage.removeItem(PENDING_WITHDRAWAL_KEY);
+      }
+    } catch {
+      localStorage.removeItem(PENDING_WITHDRAWAL_KEY);
+    }
+  }, []);
 
   const logRampSuccess = async (payload?: any) => {
     if (hasLoggedRampRef.current) return;
@@ -88,7 +131,7 @@ export default function WithdrawPage() {
       await apiService.recordRampTransaction(normalizedPayload);
       console.log('Ramp transaction logged successfully.');
       setRampStatus(null);
-      pendingWithdrawalRef.current = null;
+      clearPendingWithdrawal();
       void refetchBalances();
 
       if (pending) {
@@ -286,7 +329,7 @@ export default function WithdrawPage() {
     // New widget session — allow one send and one log for the upcoming transaction
     hasLoggedRampRef.current = false;
     hasSentRampRef.current = false;
-    pendingWithdrawalRef.current = { ngnAmount, bankDetails: { ...bankDetails } };
+    savePendingWithdrawal({ ngnAmount, bankDetails: { ...bankDetails } });
 
     window.ramp.initialize({
       public_key: import.meta.env.VITE_RAMP_PUBLIC_KEY,

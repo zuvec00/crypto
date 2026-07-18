@@ -12,7 +12,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useUSDTWallet } from "../../hooks/useUSDTWallet";
 import { useTransactions } from "../../hooks/useTransactions";
-import SendUSDTModal from "../../components/SendUSDTModal";
+import SendCryptoModal from "../../components/SendCryptoModal";
 import Toast from "../../components/Toast";
 import { apiService } from "../../services/api";
 
@@ -73,7 +73,7 @@ export default function USDTWalletPage() {
 	};
 
 	const handleSendUSDT = async (data: {
-		network: string;
+		network?: string;
 		address: string;
 		amount: string;
 		note?: string;
@@ -92,7 +92,7 @@ export default function USDTWalletPage() {
 				reference: reference,
 				narration:
 					data.note ||
-					`Send ${data.amount} USDT via ${data.network.toUpperCase()}`,
+					`Send ${data.amount} USDT via ${(data.network || "").toUpperCase()}`,
 			});
 
 			setToast({ message: "USDT sent successfully!", type: "success" });
@@ -114,7 +114,8 @@ export default function USDTWalletPage() {
 
 	return (
 		<>
-			<SendUSDTModal
+			<SendCryptoModal
+				currency="usdt"
 				isOpen={sendModalOpen}
 				onClose={() => setSendModalOpen(false)}
 				onSend={handleSendUSDT}
@@ -348,12 +349,12 @@ export default function USDTWalletPage() {
 												<div className="flex items-center">
 													<div
 														className={`h-8 w-8 rounded-full flex items-center justify-center mr-3 ${
-															tx.side === "buy" || tx.type === "buy" || tx.type === "fund"
+															tx.side === "buy" || tx.type === "buy" || tx.type === "fund" || tx.type === "deposit"
 																? "bg-metallic-gold bg-opacity-20"
 																: "bg-red-500 bg-opacity-20"
 														}`}
 													>
-														{tx.side === "buy" || tx.type === "buy" || tx.type === "fund" ? (
+														{tx.side === "buy" || tx.type === "buy" || tx.type === "fund" || tx.type === "deposit" ? (
 															<TrendingUp className="h-4 w-4 text-metallic-gold" />
 														) : (
 															<TrendingDown className="h-4 w-4 text-red-400" />

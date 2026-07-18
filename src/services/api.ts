@@ -307,6 +307,24 @@ class ApiService {
     return response.json();
   }
 
+  async changePassword(
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/user/change-password`, {
+      method: "POST",
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+
+    if (!response.ok) {
+      const error: ApiError = await response.json();
+      throw new Error(error.message || "Failed to change password");
+    }
+
+    return response.json();
+  }
+
   async getTransactionStats(): Promise<any> {
     const response = await fetch(`${API_BASE_URL}/trade/stats`, {
       method: "GET",
