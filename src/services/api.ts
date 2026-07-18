@@ -295,7 +295,7 @@ class ApiService {
   }): Promise<any> {
     const response = await fetch(`${API_BASE_URL}/user/register`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: this.getAuthHeaders(),
       body: JSON.stringify({ ...userData, role: "worker" }),
     });
 

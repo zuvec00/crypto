@@ -3,7 +3,6 @@ import {
 	BrowserRouter as Router,
 	Routes,
 	Route,
-	Navigate,
 } from "react-router-dom";
 import { useAuthStore } from "./store/authStore";
 import { useWebSocket } from "./hooks/useWebSocket";
@@ -22,6 +21,9 @@ import {
 	CreditCard,
 	PiggyBank,
 } from "lucide-react";
+import LandingPage from "./pages/LandingPage";
+import TermsPage from "./pages/TermsPage";
+import PrivacyPage from "./pages/PrivacyPage";
 import LoginPage from "./pages/LoginPage";
 import Layout from "./components/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -100,6 +102,9 @@ function App() {
 	return (
 		<Router>
 			<Routes>
+				<Route path="/" element={<LandingPage />} />
+				<Route path="/terms" element={<TermsPage />} />
+				<Route path="/privacy" element={<PrivacyPage />} />
 				<Route path="/login" element={<LoginPage />} />
 
 				{/* Worker Routes */}
@@ -138,8 +143,6 @@ function App() {
 					<Route path="transactions" element={<AdminTransactions />} />
 					<Route path="withdrawals" element={<AdminWithdrawals />} />
 				</Route>
-
-				<Route path="/" element={<Navigate to="/login" replace />} />
 			</Routes>
 		</Router>
 	);
