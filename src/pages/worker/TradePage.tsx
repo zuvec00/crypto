@@ -81,6 +81,8 @@ export default function TradePage() {
 	}, [dailyTransaction]);
 
 	const TRADING_LIMIT: number = 5000000;
+	// Quidax's minimum order value for NGN-quoted markets (docs.quidax.io/docs/order-precision)
+	const MIN_ORDER_NGN = 1000;
 
 	const handleTrade = async () => {
 		if (!amount || parseFloat(amount) <= 0) {
@@ -93,6 +95,14 @@ export default function TradePage() {
 
 		// Validation for buy orders
 		if (tradeType === "buy") {
+			if (parseFloat(amount) < MIN_ORDER_NGN) {
+				setTradeResult({
+					success: false,
+					message: `Minimum order is ₦${MIN_ORDER_NGN.toLocaleString()}`,
+				});
+				return;
+			}
+
 			const ngnBalance = balanceToUse.find((bal) => bal.currency === "ngn");
 			const availableBalance = parseFloat(ngnBalance?.balance || "0");
 			const requestedAmount = parseFloat(amount);
@@ -127,12 +137,32 @@ export default function TradePage() {
 				});
 				return;
 			}
+
+			const estimatedNaira = requestedAmount * parseFloat(selectRate?.sell || "0");
+			if (estimatedNaira < MIN_ORDER_NGN) {
+				setTradeResult({
+					success: false,
+					message: `Minimum order is ₦${MIN_ORDER_NGN.toLocaleString()}`,
+				});
+				return;
+			}
 		}
 
-		const formatVolume = (amount: string, sigFigs: number): string => {
-			const num = parseFloat(amount);
-			if (isNaN(num)) return amount;
-			return parseFloat(num.toPrecision(sigFigs)).toString();
+		// Quidax caps the number of decimal places accepted per asset on NGN markets
+		// (docs.quidax.io/docs/order-precision) - round the volume to match, or Quidax
+		// rejects the order. BCH/DOGE aren't listed on that page's NGN table, so they're
+		// left unrounded pending confirmation from Quidax.
+		const VOLUME_DECIMALS: Partial<Record<string, number>> = {
+			btc: 5,
+			eth: 4,
+			usdt: 2,
+			ltc: 3,
+		};
+
+		const formatVolume = (rawAmount: string, decimals: number): string => {
+			const num = parseFloat(rawAmount);
+			if (isNaN(num)) return rawAmount;
+			return num.toFixed(decimals);
 		};
 
 		try {
@@ -144,21 +174,17 @@ export default function TradePage() {
 					parseFloat(selectRate?.buy || "1")
 				).toFixed(8);
 
+				const decimals = VOLUME_DECIMALS[selectedCoin];
 				const volume =
-					selectedCoin === "usdt"
-						? formatVolume(cryptoAmount, 1)
-						: selectedCoin === "eth"
-							? formatVolume(cryptoAmount, 3)
-							: cryptoAmount;
+					decimals !== undefined
+						? formatVolume(cryptoAmount, decimals)
+						: cryptoAmount;
 
 				result = await buyCrypto(selectedCoin, volume, amount);
 			} else {
+				const decimals = VOLUME_DECIMALS[selectedCoin];
 				const volume =
-					selectedCoin === "usdt"
-						? formatVolume(amount, 1)
-						: selectedCoin === "eth"
-							? formatVolume(amount, 3)
-							: amount;
+					decimals !== undefined ? formatVolume(amount, decimals) : amount;
 
 				result = await sellCrypto(selectedCoin, volume, (
 					parseFloat(amount) *
